@@ -1,6 +1,5 @@
 import 'dotenv/config';
 import { Pool, QueryResult, QueryResultRow } from 'pg';
-import bcrypt from 'bcryptjs';
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -72,16 +71,6 @@ async function init(): Promise<void> {
       updated_at TIMESTAMPTZ DEFAULT NOW()
     );
   `);
-
-  // Seed admin
-  const adminEmail = process.env.ADMIN_EMAIL ?? 'shreetirupatimetalcast@yahoo.com';
-  const adminPassword = process.env.ADMIN_PASSWORD ?? 'Admin@123';
-  const existing = await queryOne('SELECT id FROM admins WHERE email = $1', [adminEmail]);
-  if (!existing) {
-    const hash = bcrypt.hashSync(adminPassword, 10);
-    await query('INSERT INTO admins (email, password, name) VALUES ($1, $2, $3)', [adminEmail, hash, 'Super Admin']);
-    console.log(`[DB] Admin seeded: ${adminEmail}`);
-  }
 
   // Seed default settings
   const defaults: [string, string][] = [

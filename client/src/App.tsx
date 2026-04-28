@@ -17,6 +17,7 @@ import Footer from './components/Footer';
 
 // Admin
 import LoginPage from './admin/LoginPage';
+import SetupPage from './admin/SetupPage';
 import AdminLayout from './admin/AdminLayout';
 import Dashboard from './admin/Dashboard';
 import EnquiriesPage from './admin/EnquiriesPage';
@@ -64,8 +65,9 @@ export default function App() {
             {/* Public website */}
             <Route path="/" element={<PublicSite />} />
 
-            {/* Admin login */}
+            {/* Admin auth */}
             <Route path="/admin/login" element={<LoginPage />} />
+            <Route path="/admin/setup" element={<SetupPage />} />
             <Route path="/admin" element={<Navigate to="/admin/login" replace />} />
 
             {/* Protected admin panel */}

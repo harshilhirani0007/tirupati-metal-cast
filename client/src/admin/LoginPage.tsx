@@ -1,7 +1,7 @@
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Cog, Eye, EyeOff, LogIn, AlertCircle } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth, API_BASE } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 
 interface FormErrors {
@@ -35,6 +35,13 @@ export default function LoginPage() {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [serverError, setServerError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    fetch(`${API_BASE}/auth/setup-status`)
+      .then(r => r.json() as Promise<{ needsSetup: boolean }>)
+      .then(data => { if (data.needsSetup) navigate('/admin/setup', { replace: true }); })
+      .catch(() => { /* if backend unreachable, stay on login */ });
+  }, [navigate]);
 
   const handleBlur = (field: string) => {
     setTouched(prev => ({ ...prev, [field]: true }));
