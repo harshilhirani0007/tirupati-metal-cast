@@ -12,10 +12,10 @@ const app = express();
 const PORT = Number(process.env.PORT ?? 4000);
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(',')
+  ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
   : ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175'];
 
-app.use(cors({ origin: allowedOrigins }));
+app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json());
 
 app.use('/api/auth', authRouter);
@@ -33,5 +33,5 @@ app.use((_req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`[TMC Backend] running on http://localhost:${PORT}`);
+  console.log(`[TMC Server] running on http://localhost:${PORT}`);
 });
