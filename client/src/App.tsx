@@ -68,10 +68,10 @@ export default function App() {
             {/* Admin auth */}
             <Route path="/admin/login" element={<LoginPage />} />
             <Route path="/admin/setup" element={<SetupPage />} />
-            <Route path="/admin" element={<Navigate to="/admin/login" replace />} />
 
             {/* Protected admin panel */}
             <Route path="/admin" element={<AdminGuard />}>
+              <Route index element={<Navigate to="dashboard" replace />} />
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="enquiries" element={<EnquiriesPage />} />
               <Route path="enquiries/:id" element={<EnquiriesPage />} />
