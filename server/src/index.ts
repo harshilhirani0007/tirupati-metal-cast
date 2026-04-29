@@ -34,4 +34,12 @@ app.use((_req, res) => {
 
 app.listen(PORT, () => {
   console.log(`[TMC Server] running on http://localhost:${PORT}`);
+
+  // Prevent Render free tier from sleeping (ping every 14 minutes)
+  if (process.env.RENDER_EXTERNAL_URL) {
+    setInterval(() => {
+      fetch(`${process.env.RENDER_EXTERNAL_URL}/api/health`)
+        .catch(() => { /* ignore */ });
+    }, 14 * 60 * 1000);
+  }
 });
