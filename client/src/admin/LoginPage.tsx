@@ -35,12 +35,32 @@ export default function LoginPage() {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [serverError, setServerError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [warming, setWarming] = useState(true);
+  const [serverReady, setServerReady] = useState(false);
 
   useEffect(() => {
-    fetch(`${API_BASE}/auth/setup-status`)
-      .then(r => r.json() as Promise<{ needsSetup: boolean }>)
-      .then(data => { if (data.needsSetup) navigate('/admin/setup', { replace: true }); })
-      .catch(() => { /* if backend unreachable, stay on login */ });
+    let attempts = 0;
+    const maxAttempts = 10;
+
+    const ping = () => {
+      fetch(`${API_BASE}/auth/setup-status`)
+        .then(r => r.json() as Promise<{ needsSetup: boolean }>)
+        .then(data => {
+          setWarming(false);
+          setServerReady(true);
+          if (data.needsSetup) navigate('/admin/setup', { replace: true });
+        })
+        .catch(() => {
+          attempts++;
+          if (attempts < maxAttempts) {
+            setTimeout(ping, 3000); // retry every 3s until server wakes
+          } else {
+            setWarming(false); // give up after 30s, let user try anyway
+          }
+        });
+    };
+
+    ping();
   }, [navigate]);
 
   const handleBlur = (field: string) => {
@@ -105,6 +125,20 @@ export default function LoginPage() {
           <h1 className={`text-2xl font-black ${dark ? 'text-white' : 'text-slate-900'}`}>Admin Panel</h1>
           <p className={`text-sm mt-1 ${dark ? 'text-slate-500' : 'text-slate-500'}`}>Shree Tirupati Metal Cast</p>
         </div>
+
+        {/* Server warm-up status */}
+        {warming && (
+          <div className="mb-5 flex items-center gap-3 px-4 py-3 bg-orange-500/10 border border-orange-500/30 rounded-xl">
+            <div className="w-3.5 h-3.5 border-2 border-orange-400/40 border-t-orange-400 rounded-full animate-spin shrink-0" />
+            <p className="text-orange-400 text-sm">Starting server, please wait a moment…</p>
+          </div>
+        )}
+        {!warming && serverReady && (
+          <div className="mb-5 flex items-center gap-3 px-4 py-3 bg-green-500/10 border border-green-500/30 rounded-xl">
+            <div className="w-2 h-2 rounded-full bg-green-400 shrink-0" />
+            <p className="text-green-400 text-sm">Server is ready. You can sign in.</p>
+          </div>
+        )}
 
         {/* Server error */}
         {serverError && (
@@ -171,11 +205,13 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || warming}
             className="w-full flex items-center justify-center gap-2 py-3.5 bg-orange-500 hover:bg-orange-600 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all duration-200 glow-orange text-sm mt-2"
           >
             {loading ? (
               <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : warming ? (
+              <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Starting server…</>
             ) : (
               <><LogIn size={16} /> Sign In</>
             )}
