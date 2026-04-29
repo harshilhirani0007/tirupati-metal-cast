@@ -17,7 +17,7 @@ interface LoginResponse {
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
-const API = import.meta.env.VITE_API_URL ?? 'https://tirupati-metal-casting.onrender.com/api';
+const API = import.meta.env.VITE_API_URL ?? 'https://tirupati-metal-cast-1.onrender.com/api';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [admin, setAdmin] = useState<AdminUser | null>(null);
