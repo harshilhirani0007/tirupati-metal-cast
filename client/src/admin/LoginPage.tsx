@@ -35,9 +35,6 @@ export default function LoginPage() {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [serverError, setServerError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [warming, setWarming] = useState(true);
-  const [serverReady, setServerReady] = useState(false);
-
   useEffect(() => {
     let attempts = 0;
     const maxAttempts = 10;
@@ -46,17 +43,11 @@ export default function LoginPage() {
       fetch(`${API_BASE}/auth/setup-status`)
         .then(r => r.json() as Promise<{ needsSetup: boolean }>)
         .then(data => {
-          setWarming(false);
-          setServerReady(true);
           if (data.needsSetup) navigate('/admin/setup', { replace: true });
         })
         .catch(() => {
           attempts++;
-          if (attempts < maxAttempts) {
-            setTimeout(ping, 3000); // retry every 3s until server wakes
-          } else {
-            setWarming(false); // give up after 30s, let user try anyway
-          }
+          if (attempts < maxAttempts) setTimeout(ping, 3000);
         });
     };
 
@@ -126,20 +117,6 @@ export default function LoginPage() {
           <p className={`text-sm mt-1 ${dark ? 'text-slate-500' : 'text-slate-500'}`}>Shree Tirupati Metal Cast</p>
         </div>
 
-        {/* Server warm-up status */}
-        {warming && (
-          <div className="mb-5 flex items-center gap-3 px-4 py-3 bg-orange-500/10 border border-orange-500/30 rounded-xl">
-            <div className="w-3.5 h-3.5 border-2 border-orange-400/40 border-t-orange-400 rounded-full animate-spin shrink-0" />
-            <p className="text-orange-400 text-sm">Starting server, please wait a moment…</p>
-          </div>
-        )}
-        {!warming && serverReady && (
-          <div className="mb-5 flex items-center gap-3 px-4 py-3 bg-green-500/10 border border-green-500/30 rounded-xl">
-            <div className="w-2 h-2 rounded-full bg-green-400 shrink-0" />
-            <p className="text-green-400 text-sm">Server is ready. You can sign in.</p>
-          </div>
-        )}
-
         {/* Server error */}
         {serverError && (
           <div className="mb-5 flex items-start gap-3 px-4 py-3 bg-red-500/10 border border-red-500/30 rounded-xl">
@@ -205,13 +182,11 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            disabled={loading || warming}
+            disabled={loading}
             className="w-full flex items-center justify-center gap-2 py-3.5 bg-orange-500 hover:bg-orange-600 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all duration-200 glow-orange text-sm mt-2"
           >
             {loading ? (
               <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            ) : warming ? (
-              <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Starting server…</>
             ) : (
               <><LogIn size={16} /> Sign In</>
             )}
