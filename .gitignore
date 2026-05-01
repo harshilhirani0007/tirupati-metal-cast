@@ -1,3 +1,9 @@
+# Local dev scripts — never push these
+dev.bat
+dev.sh
+*.local.bat
+*.local.sh
+
 # Dependencies
 node_modules/
 client/node_modules/
