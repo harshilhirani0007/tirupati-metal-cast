@@ -3,6 +3,8 @@ import { Plus, Pencil, Trash2, Star, X, Save } from 'lucide-react';
 import { useAuth, API_BASE } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { Testimonial } from '../types';
+import DeleteModal from './DeleteModal';
+import Toast from './Toast';
 
 const statusColors: Record<string, string> = {
   approved: 'bg-green-500/20 text-green-400 border-green-500/30',
@@ -22,6 +24,9 @@ export default function TestimonialsPage() {
   const [modal, setModal] = useState<{ open: boolean; editing: Testimonial | null }>({ open: false, editing: null });
   const [form, setForm] = useState<TestimonialForm>(empty);
   const [saving, setSaving] = useState(false);
+  const [deleteModal, setDeleteModal] = useState<{ open: boolean; id: number | null }>({ open: false, id: null });
+  const [deleting, setDeleting] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   const load = () =>
     fetch(`${API_BASE}/testimonials/all`, { headers: { Authorization: `Bearer ${token}` } })
@@ -39,20 +44,33 @@ export default function TestimonialsPage() {
 
   const save = async () => {
     setSaving(true);
-    const url = modal.editing ? `${API_BASE}/testimonials/${modal.editing.id}` : `${API_BASE}/testimonials`;
-    await fetch(url, {
-      method: modal.editing ? 'PUT' : 'POST',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify(form),
-    });
-    await load();
-    setModal({ open: false, editing: null });
-    setSaving(false);
+    try {
+      const url = modal.editing ? `${API_BASE}/testimonials/${modal.editing.id}` : `${API_BASE}/testimonials`;
+      const res = await fetch(url, {
+        method: modal.editing ? 'PUT' : 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+      if (res.ok) {
+        await load();
+        setModal({ open: false, editing: null });
+        setToast({ message: modal.editing ? 'Testimonial updated successfully' : 'Testimonial created successfully', type: 'success' });
+      } else {
+        setToast({ message: 'Failed to save testimonial', type: 'error' });
+      }
+    } catch {
+      setToast({ message: 'Error saving testimonial', type: 'error' });
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const del = async (id: number) => {
-    if (!confirm('Delete this testimonial?')) return;
-    await fetch(`${API_BASE}/testimonials/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+  const confirmDelete = async () => {
+    if (deleteModal.id === null) return;
+    setDeleting(true);
+    await fetch(`${API_BASE}/testimonials/${deleteModal.id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+    setDeleteModal({ open: false, id: null });
+    setDeleting(false);
     load();
   };
 
@@ -90,7 +108,7 @@ export default function TestimonialsPage() {
               </div>
               <div className="flex gap-2">
                 <button onClick={() => openEdit(t)} className="text-blue-400 hover:text-blue-300 p-1.5 rounded-lg"><Pencil size={14} /></button>
-                <button onClick={() => del(t.id)} className="text-red-400 hover:text-red-300 p-1.5 rounded-lg"><Trash2 size={14} /></button>
+                <button onClick={() => setDeleteModal({ open: true, id: t.id })} className="text-red-400 hover:text-red-300 p-1.5 rounded-lg"><Trash2 size={14} /></button>
               </div>
             </div>
           </div>
@@ -130,14 +148,33 @@ export default function TestimonialsPage() {
               </div>
             </div>
             <div className="flex gap-3 mt-5">
-              <button onClick={() => setModal({ open: false, editing: null })} className={`flex-1 py-2.5 rounded-xl border text-sm font-bold ${dark ? 'border-slate-700 text-slate-400' : 'border-slate-200 text-slate-600'}`}>Cancel</button>
-              <button onClick={save} disabled={saving} className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold rounded-xl">
-                {saving ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <><Save size={14} /> Save</>}
+              <button onClick={() => setModal({ open: false, editing: null })} disabled={saving} className={`flex-1 py-2.5 rounded-xl border text-sm font-bold transition-colors ${dark ? 'border-slate-700 text-slate-400 hover:bg-slate-800 disabled:opacity-50' : 'border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-50'}`}>Cancel</button>
+              <button onClick={save} disabled={saving} className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-orange-500 hover:bg-orange-600 disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-bold rounded-xl transition-colors">
+                {saving ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <><Save size={14} /> Save</>
+                )}
               </button>
             </div>
           </div>
         </div>
       )}
+
+      <DeleteModal
+        open={deleteModal.open}
+        title="Delete Testimonial"
+        message="Are you sure you want to delete this testimonial? This action cannot be undone."
+        itemName={deleteModal.id ? items.find(t => t.id === deleteModal.id)?.name : undefined}
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteModal({ open: false, id: null })}
+        loading={deleting}
+      />
+
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
   );
 }

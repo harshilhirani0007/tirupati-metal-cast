@@ -1,6 +1,6 @@
 import { useState, FormEvent, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Cog, Eye, EyeOff, LogIn, AlertCircle } from 'lucide-react';
+import { Cog, Eye, EyeOff, LogIn, AlertCircle, ArrowLeft } from 'lucide-react';
 import { useAuth, API_BASE } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 
@@ -103,11 +103,22 @@ export default function LoginPage() {
     `${inputBase} ${touched[field] && errors[field as keyof FormErrors] ? inputError : inputNormal}`;
 
   return (
-    <div className={`min-h-screen flex items-center justify-center px-4 ${dark ? 'bg-slate-950' : 'bg-slate-100'}`}>
+    <div className={`flex flex-col min-h-screen px-4 py-6 ${dark ? 'bg-slate-950' : 'bg-slate-100'}`}>
       {/* Background glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-orange-500/10 blur-3xl rounded-full pointer-events-none" />
 
-      <div className={`relative w-full max-w-md rounded-3xl border p-8 shadow-2xl ${dark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+      {/* Back button */}
+      <button
+        onClick={() => navigate('/')}
+        className={`self-start p-2 rounded-lg transition-colors mb-4 ${dark ? 'text-slate-400 hover:text-white hover:bg-slate-800' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200'}`}
+        aria-label="Go back to home"
+      >
+        <ArrowLeft size={20} />
+      </button>
+
+      {/* Centered form container */}
+      <div className="flex items-center justify-center flex-1">
+        <div className={`relative w-full max-w-md rounded-3xl border p-8 shadow-2xl ${dark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
           <div className="w-14 h-14 bg-orange-500 rounded-2xl flex items-center justify-center mb-4 glow-orange">
@@ -192,6 +203,7 @@ export default function LoginPage() {
             )}
           </button>
         </form>
+        </div>
       </div>
     </div>
   );

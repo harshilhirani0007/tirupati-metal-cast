@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 
 const products = [
@@ -122,12 +123,12 @@ export default function Products() {
 
               {/* Card footer */}
               <div className={`px-6 py-4 border-t ${dark ? 'border-slate-800' : 'border-slate-100'}`}>
-                <a
-                  href="#contact"
+                <Link
+                  to="/contact"
                   className="text-orange-500 text-sm font-semibold hover:text-orange-400 transition-colors flex items-center gap-1 group-hover:gap-2"
                 >
                   Request this casting →
-                </a>
+                </Link>
               </div>
             </motion.div>
           ))}

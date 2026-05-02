@@ -3,6 +3,8 @@ import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight, X, Save } from 'lucide-r
 import { useAuth, API_BASE } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { Product } from '../types';
+import DeleteModal from './DeleteModal';
+import Toast from './Toast';
 
 // Form state uses applications as a comma-separated string for easy editing
 interface ProductForm {
@@ -34,6 +36,9 @@ export default function ProductsPage() {
   const [modal, setModal] = useState<{ open: boolean; editing: Product | null }>({ open: false, editing: null });
   const [form, setForm] = useState<ProductForm>(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [deleteModal, setDeleteModal] = useState<{ open: boolean; id: number | null }>({ open: false, id: null });
+  const [deleting, setDeleting] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   const load = () =>
     fetch(`${API_BASE}/products/all`, { headers: { Authorization: `Bearer ${token}` } })
@@ -49,13 +54,23 @@ export default function ProductsPage() {
 
   const save = async () => {
     setSaving(true);
-    const body = { ...form, applications: form.applications };
-    const url = modal.editing ? `${API_BASE}/products/${modal.editing.id}` : `${API_BASE}/products`;
-    const method = modal.editing ? 'PUT' : 'POST';
-    await fetch(url, { method, headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-    await load();
-    setModal({ open: false, editing: null });
-    setSaving(false);
+    try {
+      const body = { ...form, applications: form.applications };
+      const url = modal.editing ? `${API_BASE}/products/${modal.editing.id}` : `${API_BASE}/products`;
+      const method = modal.editing ? 'PUT' : 'POST';
+      const res = await fetch(url, { method, headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      if (res.ok) {
+        await load();
+        setModal({ open: false, editing: null });
+        setToast({ message: modal.editing ? 'Product updated successfully' : 'Product created successfully', type: 'success' });
+      } else {
+        setToast({ message: 'Failed to save product', type: 'error' });
+      }
+    } catch {
+      setToast({ message: 'Error saving product', type: 'error' });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const toggleActive = async (p: Product) => {
@@ -67,10 +82,23 @@ export default function ProductsPage() {
     load();
   };
 
-  const del = async (id: number) => {
-    if (!confirm('Delete this product?')) return;
-    await fetch(`${API_BASE}/products/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
-    load();
+  const confirmDelete = async () => {
+    if (deleteModal.id === null) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(`${API_BASE}/products/${deleteModal.id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+      if (res.ok) {
+        setDeleteModal({ open: false, id: null });
+        load();
+        setToast({ message: 'Product deleted successfully', type: 'success' });
+      } else {
+        setToast({ message: 'Failed to delete product', type: 'error' });
+      }
+    } catch {
+      setToast({ message: 'Error deleting product', type: 'error' });
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const inputCls = `w-full px-3 py-2.5 rounded-xl border text-sm outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-500 transition-all ${dark ? 'bg-slate-800 border-slate-700 text-white placeholder-slate-500' : 'bg-slate-50 border-slate-200 text-slate-900'}`;
@@ -113,7 +141,7 @@ export default function ProductsPage() {
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
                     <button onClick={() => openEdit(p)} className="text-blue-400 hover:text-blue-300 p-1"><Pencil size={14} /></button>
-                    <button onClick={() => del(p.id)} className="text-red-400 hover:text-red-300 p-1"><Trash2 size={14} /></button>
+                    <button onClick={() => setDeleteModal({ open: true, id: p.id })} className="text-red-400 hover:text-red-300 p-1"><Trash2 size={14} /></button>
                   </div>
                 </td>
               </tr>
@@ -157,14 +185,33 @@ export default function ProductsPage() {
               </div>
             </div>
             <div className="flex gap-3 mt-5">
-              <button onClick={() => setModal({ open: false, editing: null })} className={`flex-1 py-2.5 rounded-xl border text-sm font-bold ${dark ? 'border-slate-700 text-slate-400' : 'border-slate-200 text-slate-600'}`}>Cancel</button>
-              <button onClick={save} disabled={saving} className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold rounded-xl transition-colors">
-                {saving ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <><Save size={14} /> Save</>}
+              <button onClick={() => setModal({ open: false, editing: null })} disabled={saving} className={`flex-1 py-2.5 rounded-xl border text-sm font-bold transition-colors ${dark ? 'border-slate-700 text-slate-400 hover:bg-slate-800 disabled:opacity-50' : 'border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-50'}`}>Cancel</button>
+              <button onClick={save} disabled={saving} className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-orange-500 hover:bg-orange-600 disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-bold rounded-xl transition-colors">
+                {saving ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <><Save size={14} /> Save</>
+                )}
               </button>
             </div>
           </div>
         </div>
       )}
+
+      <DeleteModal
+        open={deleteModal.open}
+        title="Delete Product"
+        message="Are you sure you want to delete this product? This action cannot be undone."
+        itemName={deleteModal.id ? products.find(p => p.id === deleteModal.id)?.category : undefined}
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteModal({ open: false, id: null })}
+        loading={deleting}
+      />
+
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
   );
 }

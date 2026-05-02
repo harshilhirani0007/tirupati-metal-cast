@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 
 const steps = [
@@ -99,12 +100,12 @@ export default function Process() {
             <h3 className="text-white font-black text-2xl md:text-3xl mb-2">Ready to start your project?</h3>
             <p className="text-orange-100 text-sm md:text-base">Send us your drawing and get a quote within 24 hours.</p>
           </div>
-          <a
-            href="#contact"
+          <Link
+            to="/contact"
             className="shrink-0 px-8 py-4 bg-white text-orange-600 font-black rounded-2xl hover:bg-orange-50 transition-all duration-200 hover:scale-105 shadow-lg text-sm"
           >
             Get Free Quote →
-          </a>
+          </Link>
         </motion.div>
       </div>
     </section>

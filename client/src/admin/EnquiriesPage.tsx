@@ -4,6 +4,8 @@ import { ArrowLeft, Trash2, RefreshCw, Mail, Building, Phone } from 'lucide-reac
 import { useAuth, API_BASE } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { Enquiry, PaginatedResponse } from '../types';
+import DeleteModal from './DeleteModal';
+import Toast from './Toast';
 
 const statusColors: Record<string, string> = {
   new: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
@@ -19,6 +21,9 @@ function EnquiryDetail() {
   const dark = theme === 'dark';
   const navigate = useNavigate();
   const [enq, setEnq] = useState<Enquiry | null>(null);
+  const [deleteModal, setDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -28,18 +33,39 @@ function EnquiryDetail() {
   }, [id, token]);
 
   const updateStatus = async (status: Enquiry['status']) => {
-    await fetch(`${API_BASE}/enquiries/${id}/status`, {
-      method: 'PUT',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status }),
-    });
-    setEnq(prev => prev ? { ...prev, status } : null);
+    try {
+      const res = await fetch(`${API_BASE}/enquiries/${id}/status`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      });
+      if (res.ok) {
+        setEnq(prev => prev ? { ...prev, status } : null);
+        setToast({ message: 'Status updated successfully', type: 'success' });
+      } else {
+        setToast({ message: 'Failed to update status', type: 'error' });
+      }
+    } catch {
+      setToast({ message: 'Error updating status', type: 'error' });
+    }
   };
 
-  const deleteEnq = async () => {
-    if (!confirm('Delete this enquiry?')) return;
-    await fetch(`${API_BASE}/enquiries/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
-    navigate('/admin/enquiries');
+  const confirmDelete = async () => {
+    setDeleting(true);
+    try {
+      const res = await fetch(`${API_BASE}/enquiries/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+      if (res.ok) {
+        setDeleteModal(false);
+        setToast({ message: 'Enquiry deleted successfully', type: 'success' });
+        setTimeout(() => navigate('/admin/enquiries'), 500);
+      } else {
+        setToast({ message: 'Failed to delete enquiry', type: 'error' });
+      }
+    } catch {
+      setToast({ message: 'Error deleting enquiry', type: 'error' });
+    } finally {
+      setDeleting(false);
+    }
   };
 
   if (!enq) return <div className={`text-sm ${dark ? 'text-slate-500' : 'text-slate-400'}`}>Loading…</div>;
@@ -95,11 +121,23 @@ function EnquiryDetail() {
               {s.charAt(0).toUpperCase() + s.slice(1)}
             </button>
           ))}
-          <button onClick={deleteEnq} className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors">
+          <button onClick={() => setDeleteModal(true)} className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors">
             <Trash2 size={13} /> Delete
           </button>
         </div>
       </div>
+
+      <DeleteModal
+        open={deleteModal}
+        title="Delete Enquiry"
+        message="Are you sure you want to delete this enquiry? This action cannot be undone."
+        itemName={enq ? `Enquiry #${enq.id} from ${enq.name}` : undefined}
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteModal(false)}
+        loading={deleting}
+      />
+
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
   );
 }
@@ -118,6 +156,8 @@ function EnquiriesList() {
   const [total, setTotal] = useState(0);
   const [filter, setFilter] = useState('');
   const [loading, setLoading] = useState(true);
+  const [deleteModal, setDeleteModal] = useState<{ open: boolean; id: number | null; name: string }>({ open: false, id: null, name: '' });
+  const [deleting, setDeleting] = useState(false);
 
   const load = () => {
     setLoading(true);
@@ -129,6 +169,15 @@ function EnquiriesList() {
   };
 
   useEffect(() => { load(); }, [filter, token]);
+
+  const confirmDelete = async () => {
+    if (deleteModal.id === null) return;
+    setDeleting(true);
+    await fetch(`${API_BASE}/enquiries/${deleteModal.id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+    setDeleteModal({ open: false, id: null, name: '' });
+    setDeleting(false);
+    load();
+  };
 
   return (
     <div className="space-y-5">
@@ -189,8 +238,12 @@ function EnquiriesList() {
                   <td className={`px-4 py-3 text-xs hidden sm:table-cell ${dark ? 'text-slate-500' : 'text-slate-400'}`}>
                     {new Date(enq.created_at).toLocaleDateString('en-IN')}
                   </td>
-                  <td className="px-4 py-3">
-                    <Link to={`/admin/enquiries/${enq.id}`} className="text-orange-500 text-xs font-semibold hover:text-orange-400">View →</Link>
+                  <td className="px-4 py-3 flex items-center gap-2">
+                    <Link to={`/admin/enquiries/${enq.id}`} className="text-orange-500 text-xs font-semibold hover:text-orange-400">View</Link>
+                    <button onClick={() => setDeleteModal({ open: true, id: enq.id, name: enq.name })} className={`flex items-center gap-1.5 px-3 py-1 border text-xs font-semibold rounded-lg transition-colors ${dark ? 'bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500/20' : 'bg-red-50 border-red-200 text-red-600 hover:bg-red-100'}`}>
+                      <Trash2 size={13} />
+                      Delete
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -198,6 +251,16 @@ function EnquiriesList() {
           </table>
         )}
       </div>
+
+      <DeleteModal
+        open={deleteModal.open}
+        title="Delete Enquiry"
+        message="Are you sure you want to delete this enquiry? This action cannot be undone."
+        itemName={deleteModal.name}
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteModal({ open: false, id: null, name: '' })}
+        loading={deleting}
+      />
     </div>
   );
 }

@@ -1,13 +1,15 @@
+import { Link } from 'react-router-dom';
 import { Cog, Mail, Phone, MapPin, ArrowRight } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+import { useSettings } from '../hooks/useSettings';
 
 const quickLinks = [
-  { label: 'Home', href: '#home' },
-  { label: 'About Us', href: '#about' },
-  { label: 'Products', href: '#products' },
-  { label: 'Services', href: '#services' },
-  { label: 'Process', href: '#process' },
-  { label: 'Contact', href: '#contact' },
+  { label: 'Home', href: '/' },
+  { label: 'About Us', href: '/about' },
+  { label: 'Products', href: '/products' },
+  { label: 'Services', href: '/services' },
+  { label: 'Process', href: '/process' },
+  { label: 'Contact', href: '/contact' },
 ];
 
 const products = [
@@ -21,6 +23,7 @@ const products = [
 
 export default function Footer() {
   const { theme } = useTheme();
+  const { settings } = useSettings();
   const dark = theme === 'dark';
 
   return (
@@ -29,7 +32,7 @@ export default function Footer() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-10">
           {/* Brand */}
           <div className="lg:col-span-1">
-            <a href="#home" className="flex items-center gap-2 mb-4">
+            <Link to="/" className="flex items-center gap-2 mb-4">
               <div className="w-9 h-9 bg-orange-500 rounded-lg flex items-center justify-center">
                 <Cog size={18} className="text-white" />
               </div>
@@ -37,14 +40,20 @@ export default function Footer() {
                 <span className="text-white font-black block text-sm tracking-tight">SHREE TIRUPATI</span>
                 <span className="text-orange-500 text-[10px] font-semibold tracking-[0.2em] uppercase">Metal Cast</span>
               </div>
-            </a>
+            </Link>
             <p className="text-slate-400 text-sm leading-relaxed mb-5">
-              Precision metal castings for industry. Quality foundry serving clients across India and globally.
+              {settings.tagline}
             </p>
             <div className="space-y-2 text-sm text-slate-400">
-              <div className="flex items-start gap-2"><MapPin size={14} className="text-orange-500 mt-0.5 shrink-0" /><span>Shree Tirupati Metal Cast, Gujarat, India</span></div>
-              <div className="flex items-center gap-2"><Phone size={14} className="text-orange-500 shrink-0" /><a href="tel:+919824279626" className="hover:text-orange-400 transition-colors">+91 98242 79626</a></div>
-              <div className="flex items-center gap-2"><Mail size={14} className="text-orange-500 shrink-0" /><a href="mailto:shreetirupatimetalcast@yahoo.com" className="hover:text-orange-400 transition-colors">shreetirupatimetalcast@yahoo.com</a></div>
+              {settings.address && (
+                <div className="flex items-start gap-2"><MapPin size={14} className="text-orange-500 mt-0.5 shrink-0" /><span>{settings.address}</span></div>
+              )}
+              {settings.phone && (
+                <div className="flex items-center gap-2"><Phone size={14} className="text-orange-500 shrink-0" /><a href={`tel:${settings.phone}`} className="hover:text-orange-400 transition-colors">{settings.phone}</a></div>
+              )}
+              {settings.email && (
+                <div className="flex items-center gap-2"><Mail size={14} className="text-orange-500 shrink-0" /><a href={`mailto:${settings.email}`} className="hover:text-orange-400 transition-colors">{settings.email}</a></div>
+              )}
             </div>
           </div>
 
@@ -54,13 +63,13 @@ export default function Footer() {
             <ul className="space-y-2.5">
               {quickLinks.map(({ label, href }) => (
                 <li key={label}>
-                  <a
-                    href={href}
+                  <Link
+                    to={href}
                     className="text-slate-400 hover:text-orange-400 text-sm transition-colors flex items-center gap-1.5 group"
                   >
                     <ArrowRight size={12} className="opacity-0 group-hover:opacity-100 transition-opacity text-orange-500" />
                     {label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -72,9 +81,9 @@ export default function Footer() {
             <ul className="space-y-2.5">
               {products.map(p => (
                 <li key={p}>
-                  <a href="#products" className="text-slate-400 hover:text-orange-400 text-sm transition-colors">
+                  <Link to="/products" className="text-slate-400 hover:text-orange-400 text-sm transition-colors">
                     {p}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -84,13 +93,13 @@ export default function Footer() {
           <div>
             <h4 className="text-white font-bold text-sm mb-5 uppercase tracking-wider">Get a Quote</h4>
             <p className="text-slate-400 text-sm mb-5">Send us your technical drawing and receive a detailed quote within 24 hours.</p>
-            <a
-              href="#contact"
+            <Link
+              to="/contact"
               className="inline-flex items-center gap-2 px-5 py-3 bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold rounded-xl transition-all duration-200 glow-orange"
             >
               Contact Us
               <ArrowRight size={14} />
-            </a>
+            </Link>
 
             <div className="mt-8">
               <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-800 border border-slate-700">

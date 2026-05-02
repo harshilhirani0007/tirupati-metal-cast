@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { ArrowRight, ChevronDown, Shield, Award, Zap } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 
@@ -107,15 +108,15 @@ export default function Hero() {
               transition={{ duration: 0.6, delay: 0.4 }}
               className="flex flex-wrap gap-4"
             >
-              <a
-                href="#products"
+              <Link
+                to="/products"
                 className="inline-flex items-center gap-2 px-7 py-3.5 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl transition-all duration-200 hover:scale-105 glow-orange text-sm"
               >
                 Explore Products
                 <ArrowRight size={16} />
-              </a>
-              <a
-                href="#contact"
+              </Link>
+              <Link
+                to="/contact"
                 className={`inline-flex items-center gap-2 px-7 py-3.5 font-bold rounded-xl border-2 transition-all duration-200 hover:scale-105 text-sm ${
                   dark
                     ? 'border-slate-700 text-slate-300 hover:border-orange-500 hover:text-orange-400'
@@ -123,7 +124,7 @@ export default function Hero() {
                 }`}
               >
                 Request Quote
-              </a>
+              </Link>
             </motion.div>
           </div>
 
@@ -180,15 +181,15 @@ export default function Hero() {
       </div>
 
       {/* Scroll indicator */}
-      <motion.a
-        href="#about"
+      <motion.button
+        onClick={() => document.querySelector('#about')?.scrollIntoView({ behavior: 'smooth' })}
         animate={{ y: [0, 8, 0] }}
         transition={{ repeat: Infinity, duration: 2 }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 text-slate-500 hover:text-orange-500 transition-colors"
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 text-slate-500 hover:text-orange-500 transition-colors bg-none border-none cursor-pointer"
       >
         <span className="text-xs font-medium tracking-wider uppercase">Scroll</span>
         <ChevronDown size={20} />
-      </motion.a>
+      </motion.button>
     </section>
   );
 }

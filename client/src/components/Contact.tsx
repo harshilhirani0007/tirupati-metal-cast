@@ -1,20 +1,23 @@
 import { useState, FormEvent } from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Phone, Mail, Send, CheckCircle2 } from 'lucide-react';
+import { MapPin, Phone, Mail, Send, CheckCircle2, Globe } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { API_BASE } from '../context/AuthContext';
-
-const contactInfo = [
-  { icon: MapPin, label: 'Address', value: 'Shree Tirupati Metal Cast, Gujarat, India' },
-  { icon: Phone, label: 'Phone', value: '+91 98242 79626' },
-  { icon: Mail, label: 'Email', value: 'shreetirupatimetalcast@yahoo.com' },
-];
+import { useSettings } from '../hooks/useSettings';
 
 export default function Contact() {
   const { theme } = useTheme();
+  const { settings } = useSettings();
   const dark = theme === 'dark';
   const [submitted, setSubmitted] = useState(false);
   const [form, setForm] = useState({ name: '', company: '', email: '', phone: '', message: '' });
+
+  const contactInfo = [
+    ...(settings.address ? [{ icon: MapPin, label: 'Address', value: settings.address, type: 'text' }] : []),
+    ...(settings.phone ? [{ icon: Phone, label: 'Phone', value: settings.phone, type: 'phone' }] : []),
+    ...(settings.email ? [{ icon: Mail, label: 'Email', value: settings.email, type: 'email' }] : []),
+    ...(settings.website ? [{ icon: Globe, label: 'Website', value: settings.website, type: 'url' }] : []),
+  ] as Array<{ icon: typeof MapPin; label: string; value: string; type: string }>;
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -65,7 +68,7 @@ export default function Contact() {
             transition={{ duration: 0.6 }}
             className="lg:col-span-2 space-y-6"
           >
-            {contactInfo.map(({ icon: Icon, label, value }) => (
+            {contactInfo.map(({ icon: Icon, label, value, type }) => (
               <div
                 key={label}
                 className={`flex gap-4 p-5 rounded-2xl border ${
@@ -77,26 +80,36 @@ export default function Contact() {
                 </div>
                 <div>
                   <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${dark ? 'text-slate-500' : 'text-slate-400'}`}>{label}</p>
-                  <p className={`text-sm ${dark ? 'text-slate-300' : 'text-slate-700'}`}>{value}</p>
+                  {type === 'phone' ? (
+                    <a href={`tel:${value}`} className="text-sm text-orange-500 hover:text-orange-400 transition-colors">{value}</a>
+                  ) : type === 'email' ? (
+                    <a href={`mailto:${value}`} className="text-sm text-orange-500 hover:text-orange-400 transition-colors">{value}</a>
+                  ) : type === 'url' ? (
+                    <a href={value} target="_blank" rel="noopener noreferrer" className="text-sm text-orange-500 hover:text-orange-400 transition-colors">{value}</a>
+                  ) : (
+                    <p className={`text-sm ${dark ? 'text-slate-300' : 'text-slate-700'}`}>{value}</p>
+                  )}
                 </div>
               </div>
             ))}
 
             {/* Map placeholder */}
-            <div className={`rounded-2xl overflow-hidden border h-52 flex items-center justify-center ${dark ? 'bg-slate-800 border-slate-700' : 'bg-slate-100 border-slate-200'}`}>
-              <div className="text-center">
-                <MapPin size={28} className="text-orange-500 mx-auto mb-2" />
-                <p className={`text-sm font-medium ${dark ? 'text-slate-400' : 'text-slate-500'}`}>Shree Tirupati Metal Cast, Gujarat</p>
-                <a
-                  href="https://maps.google.com/?q=Shree+Tirupati+Metal+Cast+Gujarat+India"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-2 inline-block text-orange-500 text-xs font-semibold hover:text-orange-400 transition-colors"
-                >
-                  Open in Google Maps →
-                </a>
+            {settings.address && (
+              <div className={`rounded-2xl overflow-hidden border h-52 flex items-center justify-center ${dark ? 'bg-slate-800 border-slate-700' : 'bg-slate-100 border-slate-200'}`}>
+                <div className="text-center">
+                  <MapPin size={28} className="text-orange-500 mx-auto mb-2" />
+                  <p className={`text-sm font-medium ${dark ? 'text-slate-400' : 'text-slate-500'}`}>{settings.address}</p>
+                  <a
+                    href={`https://maps.google.com/?q=${encodeURIComponent(settings.address)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-2 inline-block text-orange-500 text-xs font-semibold hover:text-orange-400 transition-colors"
+                  >
+                    Open in Google Maps →
+                  </a>
+                </div>
               </div>
-            </div>
+            )}
           </motion.div>
 
           {/* Form */}

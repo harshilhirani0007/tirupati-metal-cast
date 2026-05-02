@@ -1,0 +1,23 @@
+{
+  "buildCommand": "cd client && npm run build",
+  "installCommand": "npm install && cd client && npm install",
+  "outputDirectory": "client/dist",
+  "framework": "vite",
+  "regions": ["iad"],
+  "env": {
+    "VITE_API_URL": "@vite_api_url"
+  },
+  "routes": [
+    {
+      "src": "^/(?!api|_next|_static|(?:.*\\.(?:js|css|gif|ico|jpg|jpeg|jpg|png|svg|webp|woff|woff2|eot|ttf|otf)(?:\\?[^\\s]*)?))$",
+      "destination": "/index.html",
+      "continue": true
+    },
+    {
+      "src": "/index.html",
+      "headers": {
+        "cache-control": "public, max-age=0, s-maxage=3600"
+      }
+    }
+  ]
+}
