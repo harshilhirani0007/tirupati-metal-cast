@@ -2,18 +2,17 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
-// Public website
+// Public website layout
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 import Hero from './components/Hero';
 import About from './components/About';
-import Stats from './components/Stats';
 import Products from './components/Products';
 import Services from './components/Services';
 import Process from './components/Process';
 import WhyUs from './components/WhyUs';
 import Testimonials from './components/Testimonials';
 import Contact from './components/Contact';
-import Footer from './components/Footer';
 
 // Admin
 import LoginPage from './admin/LoginPage';
@@ -25,21 +24,13 @@ import ProductsPage from './admin/ProductsPage';
 import TestimonialsPage from './admin/TestimonialsPage';
 import SettingsPage from './admin/SettingsPage';
 
-function PublicSite() {
+function PublicLayout({ children }: { children: React.ReactNode }) {
   const { theme } = useTheme();
   const dark = theme === 'dark';
   return (
     <div className={dark ? 'bg-slate-950 text-slate-100' : 'bg-white text-slate-900'}>
       <Navbar />
-      <Hero />
-      <Stats />
-      <About />
-      <Products />
-      <Services />
-      <Process />
-      <WhyUs />
-      <Testimonials />
-      <Contact />
+      {children}
       <Footer />
     </div>
   );
@@ -62,8 +53,15 @@ export default function App() {
       <AuthProvider>
         <BrowserRouter>
           <Routes>
-            {/* Public website */}
-            <Route path="/" element={<PublicSite />} />
+            {/* Public website — multi-page SPA */}
+            <Route element={<PublicLayout><Hero /></PublicLayout>} path="/" />
+            <Route element={<PublicLayout><About /></PublicLayout>} path="/about" />
+            <Route element={<PublicLayout><Products /></PublicLayout>} path="/products" />
+            <Route element={<PublicLayout><Services /></PublicLayout>} path="/services" />
+            <Route element={<PublicLayout><Process /></PublicLayout>} path="/process" />
+            <Route element={<PublicLayout><WhyUs /></PublicLayout>} path="/why-us" />
+            <Route element={<PublicLayout><Testimonials /></PublicLayout>} path="/testimonials" />
+            <Route element={<PublicLayout><Contact /></PublicLayout>} path="/contact" />
 
             {/* Admin auth */}
             <Route path="/admin/login" element={<LoginPage />} />
