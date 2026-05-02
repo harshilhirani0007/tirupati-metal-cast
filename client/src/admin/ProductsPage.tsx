@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight, X, Save, Search } from 'lucide-react';
+import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight, X, Save } from 'lucide-react';
 import { useAuth, API_BASE } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { Product } from '../types';
 import DeleteModal from './DeleteModal';
 import Toast from './Toast';
 
+// Form state uses applications as a comma-separated string for easy editing
 interface ProductForm {
   category: string;
   description: string;
@@ -14,13 +15,6 @@ interface ProductForm {
   color: string;
   active: number;
   sort_order: number;
-}
-
-interface PaginatedResponse {
-  data: Product[];
-  total: number;
-  page: number;
-  limit: number;
 }
 
 const colorOptions = [
@@ -45,36 +39,12 @@ export default function ProductsPage() {
   const [deleteModal, setDeleteModal] = useState<{ open: boolean; id: number | null }>({ open: false, id: null });
   const [deleting, setDeleting] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
-  const [search, setSearch] = useState('');
-  const [gradeFilter, setGradeFilter] = useState('');
-  const [activeFilter, setActiveFilter] = useState('');
-  const [page, setPage] = useState(1);
-  const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(false);
 
-  const limit = 20;
+  const load = () =>
+    fetch(`${API_BASE}/products/all`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.json() as Promise<Product[]>).then(setProducts);
 
-  const load = async (pageNum = 1) => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams();
-      params.append('page', String(pageNum));
-      params.append('limit', String(limit));
-      if (search) params.append('search', search);
-      if (gradeFilter) params.append('grade', gradeFilter);
-      if (activeFilter !== '') params.append('active', activeFilter);
-
-      const res = await fetch(`${API_BASE}/products/all?${params}`, { headers: { Authorization: `Bearer ${token}` } });
-      const data = await res.json() as PaginatedResponse;
-      setProducts(data.data);
-      setTotal(data.total);
-      setPage(pageNum);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => { load(1); }, [search, gradeFilter, activeFilter, token]);
+  useEffect(() => { load(); }, [token]);
 
   const openNew = () => { setForm(emptyForm); setModal({ open: true, editing: null }); };
   const openEdit = (p: Product) => {
@@ -90,7 +60,7 @@ export default function ProductsPage() {
       const method = modal.editing ? 'PUT' : 'POST';
       const res = await fetch(url, { method, headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       if (res.ok) {
-        await load(1);
+        await load();
         setModal({ open: false, editing: null });
         setToast({ message: modal.editing ? 'Product updated successfully' : 'Product created successfully', type: 'success' });
       } else {
@@ -109,7 +79,7 @@ export default function ProductsPage() {
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...p, active: p.active ? 0 : 1, applications: p.applications.join(',') }),
     });
-    load(page);
+    load();
   };
 
   const confirmDelete = async () => {
@@ -119,7 +89,7 @@ export default function ProductsPage() {
       const res = await fetch(`${API_BASE}/products/${deleteModal.id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
       if (res.ok) {
         setDeleteModal({ open: false, id: null });
-        load(1);
+        load();
         setToast({ message: 'Product deleted successfully', type: 'success' });
       } else {
         setToast({ message: 'Failed to delete product', type: 'error' });
@@ -134,54 +104,16 @@ export default function ProductsPage() {
   const inputCls = `w-full px-3 py-2.5 rounded-xl border text-sm outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-500 transition-all ${dark ? 'bg-slate-800 border-slate-700 text-white placeholder-slate-500' : 'bg-slate-50 border-slate-200 text-slate-900'}`;
   const labelCls = `block text-xs font-semibold mb-1 ${dark ? 'text-slate-400' : 'text-slate-600'}`;
 
-  const totalPages = Math.ceil(total / limit);
-
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
           <h1 className={`text-2xl font-black ${dark ? 'text-white' : 'text-slate-900'}`}>Products</h1>
-          <p className={`text-sm mt-0.5 ${dark ? 'text-slate-500' : 'text-slate-500'}`}>{total} total</p>
+          <p className={`text-sm mt-0.5 ${dark ? 'text-slate-500' : 'text-slate-500'}`}>{products.length} products</p>
         </div>
         <button onClick={openNew} className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold rounded-xl transition-colors glow-orange">
           <Plus size={16} /> Add Product
         </button>
-      </div>
-
-      <div className={`p-4 rounded-2xl border ${dark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <div>
-            <label className={labelCls}>Search</label>
-            <div className={`flex items-center px-3 rounded-xl border ${dark ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-200'}`}>
-              <Search size={16} className={dark ? 'text-slate-500' : 'text-slate-400'} />
-              <input
-                type="text"
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                placeholder="Search category, grade..."
-                className={`flex-1 ml-2 py-2.5 bg-transparent text-sm outline-none ${dark ? 'text-white placeholder-slate-500' : 'text-slate-900 placeholder-slate-400'}`}
-              />
-            </div>
-          </div>
-          <div>
-            <label className={labelCls}>Grade</label>
-            <input
-              type="text"
-              value={gradeFilter}
-              onChange={e => setGradeFilter(e.target.value)}
-              placeholder="Filter by grade"
-              className={inputCls}
-            />
-          </div>
-          <div>
-            <label className={labelCls}>Status</label>
-            <select value={activeFilter} onChange={e => setActiveFilter(e.target.value)} className={inputCls}>
-              <option value="">All</option>
-              <option value="1">Active</option>
-              <option value="0">Inactive</option>
-            </select>
-          </div>
-        </div>
       </div>
 
       <div className={`rounded-2xl border overflow-hidden ${dark ? 'border-slate-800' : 'border-slate-200'}`}>
@@ -216,38 +148,7 @@ export default function ProductsPage() {
             ))}
           </tbody>
         </table>
-        {loading && <div className={`flex justify-center py-8 ${dark ? 'bg-slate-900' : 'bg-white'}`}><div className="w-5 h-5 border-2 border-orange-500/30 border-t-orange-500 rounded-full animate-spin" /></div>}
       </div>
-
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <button
-            onClick={() => load(page - 1)}
-            disabled={page === 1 || loading}
-            className={`px-4 py-2 rounded-lg border text-sm font-semibold transition-colors ${
-              page === 1 || loading
-                ? dark ? 'border-slate-700 text-slate-500 cursor-not-allowed' : 'border-slate-200 text-slate-400 cursor-not-allowed'
-                : dark ? 'border-slate-700 text-slate-400 hover:bg-slate-800' : 'border-slate-200 text-slate-600 hover:bg-slate-50'
-            }`}
-          >
-            Previous
-          </button>
-          <span className={`text-sm font-semibold ${dark ? 'text-slate-400' : 'text-slate-600'}`}>
-            Page {page} of {totalPages}
-          </span>
-          <button
-            onClick={() => load(page + 1)}
-            disabled={page === totalPages || loading}
-            className={`px-4 py-2 rounded-lg border text-sm font-semibold transition-colors ${
-              page === totalPages || loading
-                ? dark ? 'border-slate-700 text-slate-500 cursor-not-allowed' : 'border-slate-200 text-slate-400 cursor-not-allowed'
-                : dark ? 'border-slate-700 text-slate-400 hover:bg-slate-800' : 'border-slate-200 text-slate-600 hover:bg-slate-50'
-            }`}
-          >
-            Next
-          </button>
-        </div>
-      )}
 
       {/* Modal */}
       {modal.open && (

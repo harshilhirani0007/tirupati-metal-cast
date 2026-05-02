@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Trash2, RefreshCw, Mail, Building, Phone, Search } from 'lucide-react';
+import { ArrowLeft, Trash2, RefreshCw, Mail, Building, Phone } from 'lucide-react';
 import { useAuth, API_BASE } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { Enquiry, PaginatedResponse } from '../types';
@@ -154,54 +154,30 @@ function EnquiriesList() {
   const dark = theme === 'dark';
   const [enquiries, setEnquiries] = useState<Enquiry[]>([]);
   const [total, setTotal] = useState(0);
-  const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('');
   const [loading, setLoading] = useState(true);
   const [deleteModal, setDeleteModal] = useState<{ open: boolean; id: number | null; name: string }>({ open: false, id: null, name: '' });
   const [deleting, setDeleting] = useState(false);
-  const [page, setPage] = useState(1);
 
-  const limit = 20;
-
-  const load = async (pageNum = 1) => {
+  const load = () => {
     setLoading(true);
-    try {
-      const params = new URLSearchParams();
-      params.append('page', String(pageNum));
-      params.append('limit', String(limit));
-      if (search) params.append('search', search);
-      if (filter) params.append('status', filter);
-
-      const url = `${API_BASE}/enquiries?${params}`;
-      const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
-      const d = await res.json() as PaginatedResponse<Enquiry>;
-      setEnquiries(d.data);
-      setTotal(d.total);
-      setPage(pageNum);
-    } finally {
-      setLoading(false);
-    }
+    const url = filter ? `${API_BASE}/enquiries?status=${filter}` : `${API_BASE}/enquiries`;
+    fetch(url, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.json() as Promise<PaginatedResponse<Enquiry>>)
+      .then(d => { setEnquiries(d.data); setTotal(d.total); })
+      .finally(() => setLoading(false));
   };
 
-  useEffect(() => { load(1); }, [search, filter, token]);
+  useEffect(() => { load(); }, [filter, token]);
 
   const confirmDelete = async () => {
     if (deleteModal.id === null) return;
     setDeleting(true);
-    try {
-      const res = await fetch(`${API_BASE}/enquiries/${deleteModal.id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
-      if (res.ok) {
-        setDeleteModal({ open: false, id: null, name: '' });
-        load(1);
-      }
-    } finally {
-      setDeleting(false);
-    }
+    await fetch(`${API_BASE}/enquiries/${deleteModal.id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+    setDeleteModal({ open: false, id: null, name: '' });
+    setDeleting(false);
+    load();
   };
-
-  const totalPages = Math.ceil(total / limit);
-  const inputCls = `w-full px-3 py-2.5 rounded-xl border text-sm outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-500 transition-all ${dark ? 'bg-slate-800 border-slate-700 text-white placeholder-slate-500' : 'bg-slate-50 border-slate-200 text-slate-900'}`;
-  const labelCls = `block text-xs font-semibold mb-1 ${dark ? 'text-slate-400' : 'text-slate-600'}`;
 
   return (
     <div className="space-y-5">
@@ -210,37 +186,9 @@ function EnquiriesList() {
           <h1 className={`text-2xl font-black ${dark ? 'text-white' : 'text-slate-900'}`}>Enquiries</h1>
           <p className={`text-sm mt-0.5 ${dark ? 'text-slate-500' : 'text-slate-500'}`}>{total} total</p>
         </div>
-        <button onClick={() => load(page)} className={`p-2 rounded-xl border ${dark ? 'border-slate-800 text-slate-400 hover:text-white' : 'border-slate-200 text-slate-500 hover:text-slate-900'}`}>
+        <button onClick={load} className={`p-2 rounded-xl border ${dark ? 'border-slate-800 text-slate-400 hover:text-white' : 'border-slate-200 text-slate-500 hover:text-slate-900'}`}>
           <RefreshCw size={16} />
         </button>
-      </div>
-
-      <div className={`p-4 rounded-2xl border ${dark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div>
-            <label className={labelCls}>Search</label>
-            <div className={`flex items-center px-3 rounded-xl border ${dark ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-200'}`}>
-              <Search size={16} className={dark ? 'text-slate-500' : 'text-slate-400'} />
-              <input
-                type="text"
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                placeholder="Search name, email, company..."
-                className={`flex-1 ml-2 py-2.5 bg-transparent text-sm outline-none ${dark ? 'text-white placeholder-slate-500' : 'text-slate-900 placeholder-slate-400'}`}
-              />
-            </div>
-          </div>
-          <div>
-            <label className={labelCls}>Status</label>
-            <select value={filter} onChange={e => setFilter(e.target.value)} className={inputCls}>
-              <option value="">All</option>
-              <option value="new">New</option>
-              <option value="read">Read</option>
-              <option value="replied">Replied</option>
-              <option value="archived">Archived</option>
-            </select>
-          </div>
-        </div>
       </div>
 
       <div className="flex gap-2 flex-wrap">
@@ -303,36 +251,6 @@ function EnquiriesList() {
           </table>
         )}
       </div>
-
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <button
-            onClick={() => load(page - 1)}
-            disabled={page === 1 || loading}
-            className={`px-4 py-2 rounded-lg border text-sm font-semibold transition-colors ${
-              page === 1 || loading
-                ? dark ? 'border-slate-700 text-slate-500 cursor-not-allowed' : 'border-slate-200 text-slate-400 cursor-not-allowed'
-                : dark ? 'border-slate-700 text-slate-400 hover:bg-slate-800' : 'border-slate-200 text-slate-600 hover:bg-slate-50'
-            }`}
-          >
-            Previous
-          </button>
-          <span className={`text-sm font-semibold ${dark ? 'text-slate-400' : 'text-slate-600'}`}>
-            Page {page} of {totalPages}
-          </span>
-          <button
-            onClick={() => load(page + 1)}
-            disabled={page === totalPages || loading}
-            className={`px-4 py-2 rounded-lg border text-sm font-semibold transition-colors ${
-              page === totalPages || loading
-                ? dark ? 'border-slate-700 text-slate-500 cursor-not-allowed' : 'border-slate-200 text-slate-400 cursor-not-allowed'
-                : dark ? 'border-slate-700 text-slate-400 hover:bg-slate-800' : 'border-slate-200 text-slate-600 hover:bg-slate-50'
-            }`}
-          >
-            Next
-          </button>
-        </div>
-      )}
 
       <DeleteModal
         open={deleteModal.open}
