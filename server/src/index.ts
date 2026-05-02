@@ -11,14 +11,13 @@ import settingsRouter from './routes/settings';
 const app = express();
 const PORT = Number(process.env.PORT ?? 4000);
 
-const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? [
-      ...process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim()),
-      'http://localhost:5173',
-      'http://localhost:5174',
-      'http://localhost:5175',
-    ]
-  : ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175'];
+const allowedOrigins = [
+  ...(process.env.CORS_ORIGIN ? [process.env.CORS_ORIGIN] : []),
+  ...(process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim()) : []),
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:5175',
+];
 
 app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json());
