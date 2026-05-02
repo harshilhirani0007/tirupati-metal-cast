@@ -9,15 +9,9 @@
   },
   "routes": [
     {
-      "src": "^/(?!api|_next|_static|(?:.*\\.(?:js|css|gif|ico|jpg|jpeg|jpg|png|svg|webp|woff|woff2|eot|ttf|otf)(?:\\?[^\\s]*)?))$",
+      "src": "^/(?!api).*$",
       "destination": "/index.html",
       "continue": true
-    },
-    {
-      "src": "/index.html",
-      "headers": {
-        "cache-control": "public, max-age=0, s-maxage=3600"
-      }
     }
   ]
 }
