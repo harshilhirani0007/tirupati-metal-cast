@@ -1,29 +1,16 @@
 import { Router, Request, Response } from 'express';
 import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
 import { query } from '../db';
 import { authMiddleware } from '../middleware/auth';
 import { Product } from '../types';
+import cloudinary from '../cloudinary';
 
 const router = Router();
 
-// Multer storage — save to /uploads/products/
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
-    const dir = path.join(process.cwd(), 'uploads', 'products');
-    fs.mkdirSync(dir, { recursive: true });
-    cb(null, dir);
-  },
-  filename: (_req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    cb(null, `product_${Date.now()}${ext}`);
-  },
-});
-
+// Multer memory storage — buffer sent directly to Cloudinary
 const upload = multer({
-  storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
     if (/^image\/(jpeg|jpg|png|webp|gif)$/.test(file.mimetype)) cb(null, true);
     else cb(new Error('Only image files are allowed'));
@@ -36,16 +23,24 @@ function parseProduct(p: Product): ProductWithApps {
   return { ...p, applications: p.applications ? p.applications.split(',') : [] };
 }
 
-function buildImageUrl(req: Request, filename: string): string {
-  const base = process.env.RENDER_EXTERNAL_URL ?? `http://localhost:${process.env.PORT ?? 4000}`;
-  return `${base}/uploads/products/${filename}`;
-}
-
-// POST /api/products/upload  (admin) — upload image, returns url
-router.post('/upload', authMiddleware, upload.single('image'), (req: Request, res: Response): void => {
+// POST /api/products/upload  (admin) — upload to Cloudinary, return secure url
+router.post('/upload', authMiddleware, upload.single('image'), async (req: Request, res: Response): Promise<void> => {
   if (!req.file) { res.status(400).json({ error: 'No file uploaded' }); return; }
-  const url = buildImageUrl(req, req.file.filename);
-  res.json({ url });
+  try {
+    const result = await new Promise<{ secure_url: string }>((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        { folder: 'tmc-products', resource_type: 'image' },
+        (err, result) => {
+          if (err || !result) reject(err ?? new Error('Upload failed'));
+          else resolve(result);
+        }
+      );
+      stream.end(req.file!.buffer);
+    });
+    res.json({ url: result.secure_url });
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
 });
 
 // GET /api/products  (public)

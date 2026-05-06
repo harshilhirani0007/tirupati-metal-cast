@@ -1,7 +1,6 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
-import path from 'path';
 
 import authRouter from './routes/auth';
 import enquiriesRouter from './routes/enquiries';
@@ -24,7 +23,6 @@ const allowedOrigins = [
 
 app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json());
-app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 app.use('/api/auth', authRouter);
 app.use('/api/enquiries', enquiriesRouter);
