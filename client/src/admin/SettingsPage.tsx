@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Save, KeyRound, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Save, KeyRound, CheckCircle2, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { useAuth, API_BASE } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import Toast from './Toast';
@@ -22,6 +22,7 @@ export default function SettingsPage() {
 
   const [pwForm, setPwForm] = useState({ currentPassword: '', newPassword: '', confirm: '' });
   const [pwSaving, setPwSaving] = useState(false);
+  const [showPw, setShowPw] = useState({ current: false, new: false, confirm: false });
 
   const settingFields = [
     { key: 'company_name', label: 'Company Name', placeholder: 'Shri Tirupati Metal Cast' },
@@ -223,9 +224,33 @@ export default function SettingsPage() {
             <h2 className={`font-bold ${dark ? 'text-white' : 'text-slate-900'}`}>Change Password</h2>
           </div>
           <div className="space-y-4">
-            <div><label className={labelCls}>Current Password</label><input type="password" className={inputCls} value={pwForm.currentPassword} onChange={e => setPwForm({ ...pwForm, currentPassword: e.target.value })} /></div>
-            <div><label className={labelCls}>New Password</label><input type="password" className={inputCls} value={pwForm.newPassword} onChange={e => setPwForm({ ...pwForm, newPassword: e.target.value })} /></div>
-            <div><label className={labelCls}>Confirm New Password</label><input type="password" className={inputCls} value={pwForm.confirm} onChange={e => setPwForm({ ...pwForm, confirm: e.target.value })} /></div>
+            <div>
+              <label className={labelCls}>Current Password</label>
+              <div className="relative">
+                <input type={showPw.current ? 'text' : 'password'} className={`${inputCls} pr-10`} value={pwForm.currentPassword} onChange={e => setPwForm({ ...pwForm, currentPassword: e.target.value })} />
+                <button type="button" onClick={() => setShowPw(p => ({ ...p, current: !p.current }))} className={`absolute right-3 top-1/2 -translate-y-1/2 ${dark ? 'text-slate-400 hover:text-slate-200' : 'text-slate-400 hover:text-slate-600'}`}>
+                  {showPw.current ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+            </div>
+            <div>
+              <label className={labelCls}>New Password</label>
+              <div className="relative">
+                <input type={showPw.new ? 'text' : 'password'} className={`${inputCls} pr-10`} value={pwForm.newPassword} onChange={e => setPwForm({ ...pwForm, newPassword: e.target.value })} />
+                <button type="button" onClick={() => setShowPw(p => ({ ...p, new: !p.new }))} className={`absolute right-3 top-1/2 -translate-y-1/2 ${dark ? 'text-slate-400 hover:text-slate-200' : 'text-slate-400 hover:text-slate-600'}`}>
+                  {showPw.new ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+            </div>
+            <div>
+              <label className={labelCls}>Confirm New Password</label>
+              <div className="relative">
+                <input type={showPw.confirm ? 'text' : 'password'} className={`${inputCls} pr-10`} value={pwForm.confirm} onChange={e => setPwForm({ ...pwForm, confirm: e.target.value })} />
+                <button type="button" onClick={() => setShowPw(p => ({ ...p, confirm: !p.confirm }))} className={`absolute right-3 top-1/2 -translate-y-1/2 ${dark ? 'text-slate-400 hover:text-slate-200' : 'text-slate-400 hover:text-slate-600'}`}>
+                  {showPw.confirm ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+            </div>
           </div>
           <button
             onClick={changePassword}
