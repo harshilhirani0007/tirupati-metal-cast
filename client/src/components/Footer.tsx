@@ -37,7 +37,7 @@ export default function Footer() {
                 <Cog size={18} className="text-white" />
               </div>
               <div className="leading-none">
-                <span className="text-white font-black block text-sm tracking-tight">SHREE TIRUPATI</span>
+                <span className="text-white font-black block text-sm tracking-tight">SHRI TIRUPATI</span>
                 <span className="text-orange-500 text-[10px] font-semibold tracking-[0.2em] uppercase">Metal Cast</span>
               </div>
             </Link>

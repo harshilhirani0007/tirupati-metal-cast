@@ -1,7 +1,7 @@
 {
   "name": "tirupati-metal-cast",
   "version": "1.0.0",
-  "description": "Shree Tirupati Metal Cast - Full Stack Application",
+  "description": "Shri Tirupati Metal Cast - Full Stack Application",
   "private": true,
   "scripts": {
     "dev:client": "cd client && npm run dev",

@@ -159,87 +159,89 @@ export default function SettingsPage() {
   const sectionCls = `p-6 rounded-2xl border ${dark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-sm'}`;
 
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div className="space-y-6 w-full">
       <div>
         <h1 className={`text-2xl font-black ${dark ? 'text-white' : 'text-slate-900'}`}>Settings</h1>
         <p className={`text-sm mt-0.5 ${dark ? 'text-slate-500' : 'text-slate-500'}`}>Manage company info and account</p>
       </div>
 
-      {/* Company Settings */}
-      <div className={sectionCls}>
-        <h2 className={`font-bold mb-5 ${dark ? 'text-white' : 'text-slate-900'}`}>Company Information</h2>
-        <div className="space-y-4">
-          {settingFields.map(({ key, label, placeholder, type }) => (
-            <div key={key}>
-              <label className={labelCls}>{label}</label>
-              <input
-                type={type || 'text'}
-                className={`w-full px-3 py-2.5 rounded-xl border text-sm outline-none focus:ring-2 transition-all ${
-                  touched[key] && errors[key]
-                    ? dark
-                      ? 'bg-red-950/20 border-red-500/60 text-white placeholder-slate-500 focus:ring-red-500/30 focus:border-red-500'
-                      : 'bg-red-50 border-red-400 text-slate-900 placeholder-slate-400 focus:ring-red-500/20 focus:border-red-500'
-                    : dark
-                    ? 'bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:ring-orange-500/30 focus:border-orange-500'
-                    : 'bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:ring-orange-500/30 focus:border-orange-500'
-                }`}
-                placeholder={placeholder}
-                value={settings[key] || ''}
-                onChange={e => handleFieldChange(key, e.target.value)}
-                onBlur={() => handleFieldBlur(key)}
-              />
-              {touched[key] && errors[key] && (
-                <p className="flex items-center gap-1.5 mt-1.5 text-xs text-red-400">
-                  <AlertCircle size={12} className="shrink-0" />
-                  {errors[key]}
-                </p>
-              )}
-            </div>
-          ))}
+      <div className="space-y-6">
+        {/* Company Settings — full width */}
+        <div className={sectionCls}>
+          <h2 className={`font-bold mb-5 ${dark ? 'text-white' : 'text-slate-900'}`}>Company Information</h2>
+          <div className="grid sm:grid-cols-2 gap-4">
+            {settingFields.map(({ key, label, placeholder, type }) => (
+              <div key={key}>
+                <label className={labelCls}>{label}</label>
+                <input
+                  type={type || 'text'}
+                  className={`w-full px-3 py-2.5 rounded-xl border text-sm outline-none focus:ring-2 transition-all ${
+                    touched[key] && errors[key]
+                      ? dark
+                        ? 'bg-red-950/20 border-red-500/60 text-white placeholder-slate-500 focus:ring-red-500/30 focus:border-red-500'
+                        : 'bg-red-50 border-red-400 text-slate-900 placeholder-slate-400 focus:ring-red-500/20 focus:border-red-500'
+                      : dark
+                      ? 'bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:ring-orange-500/30 focus:border-orange-500'
+                      : 'bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:ring-orange-500/30 focus:border-orange-500'
+                  }`}
+                  placeholder={placeholder}
+                  value={settings[key] || ''}
+                  onChange={e => handleFieldChange(key, e.target.value)}
+                  onBlur={() => handleFieldBlur(key)}
+                />
+                {touched[key] && errors[key] && (
+                  <p className="flex items-center gap-1.5 mt-1.5 text-xs text-red-400">
+                    <AlertCircle size={12} className="shrink-0" />
+                    {errors[key]}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+          <button
+            onClick={saveSettings}
+            disabled={saving}
+            className="mt-6 flex items-center gap-2 px-5 py-2.5 bg-orange-500 hover:bg-orange-600 disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-bold rounded-xl transition-colors glow-orange"
+          >
+            {saved ? (
+              <><CheckCircle2 size={15} /> Saved!</>
+            ) : saving ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <><Save size={15} /> Save Settings</>
+            )}
+          </button>
         </div>
-        <button
-          onClick={saveSettings}
-          disabled={saving}
-          className="mt-5 flex items-center gap-2 px-5 py-2.5 bg-orange-500 hover:bg-orange-600 disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-bold rounded-xl transition-colors glow-orange"
-        >
-          {saved ? (
-            <><CheckCircle2 size={15} /> Saved!</>
-          ) : saving ? (
-            <>
-              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              Saving...
-            </>
-          ) : (
-            <><Save size={15} /> Save Settings</>
-          )}
-        </button>
-      </div>
 
-      {/* Change Password */}
-      <div className={sectionCls}>
-        <div className="flex items-center gap-3 mb-5">
-          <KeyRound size={18} className="text-orange-500" />
-          <h2 className={`font-bold ${dark ? 'text-white' : 'text-slate-900'}`}>Change Password</h2>
+        {/* Change Password — full width */}
+        <div className={sectionCls}>
+          <div className="flex items-center gap-3 mb-5">
+            <KeyRound size={18} className="text-orange-500" />
+            <h2 className={`font-bold ${dark ? 'text-white' : 'text-slate-900'}`}>Change Password</h2>
+          </div>
+          <div className="space-y-4">
+            <div><label className={labelCls}>Current Password</label><input type="password" className={inputCls} value={pwForm.currentPassword} onChange={e => setPwForm({ ...pwForm, currentPassword: e.target.value })} /></div>
+            <div><label className={labelCls}>New Password</label><input type="password" className={inputCls} value={pwForm.newPassword} onChange={e => setPwForm({ ...pwForm, newPassword: e.target.value })} /></div>
+            <div><label className={labelCls}>Confirm New Password</label><input type="password" className={inputCls} value={pwForm.confirm} onChange={e => setPwForm({ ...pwForm, confirm: e.target.value })} /></div>
+          </div>
+          <button
+            onClick={changePassword}
+            disabled={pwSaving}
+            className="mt-5 flex items-center gap-2 px-5 py-2.5 bg-orange-500 hover:bg-orange-600 disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-bold rounded-xl transition-colors"
+          >
+            {pwSaving ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Updating...
+              </>
+            ) : (
+              <><Save size={15} /> Update Password</>
+            )}
+          </button>
         </div>
-        <div className="space-y-4">
-          <div><label className={labelCls}>Current Password</label><input type="password" className={inputCls} value={pwForm.currentPassword} onChange={e => setPwForm({ ...pwForm, currentPassword: e.target.value })} /></div>
-          <div><label className={labelCls}>New Password</label><input type="password" className={inputCls} value={pwForm.newPassword} onChange={e => setPwForm({ ...pwForm, newPassword: e.target.value })} /></div>
-          <div><label className={labelCls}>Confirm New Password</label><input type="password" className={inputCls} value={pwForm.confirm} onChange={e => setPwForm({ ...pwForm, confirm: e.target.value })} /></div>
-        </div>
-        <button
-          onClick={changePassword}
-          disabled={pwSaving}
-          className="mt-4 flex items-center gap-2 px-5 py-2.5 bg-orange-500 hover:bg-orange-600 disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-bold rounded-xl transition-colors"
-        >
-          {pwSaving ? (
-            <>
-              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              Updating...
-            </>
-          ) : (
-            <><Save size={15} /> Update Password</>
-          )}
-        </button>
       </div>
 
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}

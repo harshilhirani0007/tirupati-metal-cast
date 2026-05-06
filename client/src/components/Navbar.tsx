@@ -33,12 +33,12 @@ export default function Navbar() {
       initial={{ y: -80, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.6, ease: 'easeOut' }}
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b ${
         scrolled
           ? dark
-            ? 'bg-slate-900/95 backdrop-blur-md border-b border-slate-800 shadow-2xl'
-            : 'bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-lg'
-          : 'bg-transparent'
+            ? 'bg-slate-900/95 backdrop-blur-md border-slate-800 shadow-2xl'
+            : 'bg-white/95 backdrop-blur-md border-slate-200 shadow-lg'
+          : 'bg-transparent border-transparent'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -135,6 +135,13 @@ export default function Navbar() {
                 className="mt-2 px-4 py-3 bg-orange-500 text-white font-semibold rounded-lg text-center text-sm"
               >
                 Get Quote
+              </Link>
+              <Link
+                to="/admin/login"
+                onClick={() => setMenuOpen(false)}
+                className={`px-4 py-3 rounded-lg text-sm font-medium text-center transition-colors ${dark ? 'text-slate-400 hover:text-white hover:bg-slate-800' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'}`}
+              >
+                Admin Login
               </Link>
             </div>
           </motion.div>

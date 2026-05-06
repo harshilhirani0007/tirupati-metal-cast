@@ -79,52 +79,72 @@ function EnquiryDetail() {
   ];
 
   return (
-    <div className="space-y-6 max-w-2xl">
-      <div className="flex items-center gap-3">
-        <Link to="/admin/enquiries" className={`p-2 rounded-xl border ${dark ? 'border-slate-800 text-slate-400 hover:text-white' : 'border-slate-200 text-slate-500 hover:text-slate-900'}`}>
-          <ArrowLeft size={16} />
-        </Link>
-        <h1 className={`text-xl font-black ${dark ? 'text-white' : 'text-slate-900'}`}>Enquiry #{enq.id}</h1>
-        <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${statusColors[enq.status]}`}>{enq.status}</span>
+    <div className="space-y-6 w-full">
+      {/* Header */}
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div className="flex items-center gap-3">
+          <Link to="/admin/enquiries" className={`p-2 rounded-xl border ${dark ? 'border-slate-800 text-slate-400 hover:text-white' : 'border-slate-200 text-slate-500 hover:text-slate-900'}`}>
+            <ArrowLeft size={16} />
+          </Link>
+          <h1 className={`text-2xl font-black ${dark ? 'text-white' : 'text-slate-900'}`}>Enquiry #{enq.id}</h1>
+          <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${statusColors[enq.status]}`}>{enq.status}</span>
+        </div>
+        <button onClick={() => setDeleteModal(true)} className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors">
+          <Trash2 size={14} /> Delete Enquiry
+        </button>
       </div>
 
-      <div className={`p-6 rounded-2xl border ${dark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-sm'}`}>
-        <div className="grid sm:grid-cols-2 gap-4 mb-6">
-          {fields.map(({ icon: Icon, label, value }) => (
-            <div key={label} className={`p-3 rounded-xl ${dark ? 'bg-slate-800' : 'bg-slate-50'}`}>
-              <div className="flex items-center gap-2 mb-1">
-                <Icon size={13} className="text-orange-500" />
-                <span className={`text-xs font-bold ${dark ? 'text-slate-500' : 'text-slate-400'}`}>{label}</span>
-              </div>
-              <p className={`text-sm font-medium ${dark ? 'text-white' : 'text-slate-900'}`}>{value}</p>
+      {/* Main Content */}
+      <div className="grid lg:grid-cols-3 gap-6">
+        {/* Left — Contact Details */}
+        <div className="lg:col-span-1 space-y-4">
+          <div className={`p-6 rounded-2xl border ${dark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-sm'}`}>
+            <h2 className={`text-sm font-bold uppercase tracking-wider mb-4 ${dark ? 'text-slate-400' : 'text-slate-500'}`}>Contact Details</h2>
+            <div className="space-y-4">
+              {fields.map(({ icon: Icon, label, value }) => (
+                <div key={label} className={`p-4 rounded-xl ${dark ? 'bg-slate-800' : 'bg-slate-50'}`}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Icon size={13} className="text-orange-500" />
+                    <span className={`text-xs font-bold ${dark ? 'text-slate-500' : 'text-slate-400'}`}>{label}</span>
+                  </div>
+                  <p className={`text-sm font-semibold ${dark ? 'text-white' : 'text-slate-900'}`}>{value}</p>
+                </div>
+              ))}
             </div>
-          ))}
+          </div>
+
+          {/* Received */}
+          <div className={`p-4 rounded-2xl border ${dark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-sm'}`}>
+            <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${dark ? 'text-slate-500' : 'text-slate-400'}`}>Received</p>
+            <p className={`text-sm font-semibold ${dark ? 'text-white' : 'text-slate-900'}`}>{new Date(enq.created_at).toLocaleString('en-IN')}</p>
+          </div>
         </div>
 
-        <div className={`p-4 rounded-xl mb-4 ${dark ? 'bg-slate-800' : 'bg-slate-50'}`}>
-          <p className={`text-xs font-bold mb-2 ${dark ? 'text-slate-500' : 'text-slate-400'}`}>MESSAGE</p>
-          <p className={`text-sm leading-relaxed ${dark ? 'text-slate-300' : 'text-slate-700'}`}>{enq.message}</p>
-        </div>
+        {/* Right — Message + Status */}
+        <div className="lg:col-span-2 space-y-4">
+          {/* Message */}
+          <div className={`p-6 rounded-2xl border ${dark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-sm'}`}>
+            <h2 className={`text-sm font-bold uppercase tracking-wider mb-4 ${dark ? 'text-slate-400' : 'text-slate-500'}`}>Message</h2>
+            <p className={`text-sm leading-relaxed ${dark ? 'text-slate-300' : 'text-slate-700'}`}>{enq.message}</p>
+          </div>
 
-        <p className={`text-xs mb-6 ${dark ? 'text-slate-600' : 'text-slate-400'}`}>
-          Received: {new Date(enq.created_at).toLocaleString('en-IN')}
-        </p>
-
-        <div className="flex flex-wrap gap-2">
-          {(['new', 'read', 'replied', 'archived'] as Enquiry['status'][]).map(s => (
-            <button
-              key={s}
-              onClick={() => updateStatus(s)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${
-                enq.status === s ? statusColors[s] : dark ? 'border-slate-700 text-slate-400 hover:border-slate-600' : 'border-slate-200 text-slate-500 hover:border-slate-300'
-              }`}
-            >
-              {s.charAt(0).toUpperCase() + s.slice(1)}
-            </button>
-          ))}
-          <button onClick={() => setDeleteModal(true)} className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors">
-            <Trash2 size={13} /> Delete
-          </button>
+          {/* Status */}
+          <div className={`p-6 rounded-2xl border ${dark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-sm'}`}>
+            <h2 className={`text-sm font-bold uppercase tracking-wider mb-4 ${dark ? 'text-slate-400' : 'text-slate-500'}`}>Update Status</h2>
+            <div className="flex flex-wrap gap-2">
+              {(['new', 'read', 'replied', 'archived'] as Enquiry['status'][]).map(s => (
+                <button
+                  key={s}
+                  onClick={() => updateStatus(s)}
+                  className={`px-4 py-2 rounded-xl text-sm font-bold border transition-all ${
+                    enq.status === s ? statusColors[s] : dark ? 'border-slate-700 text-slate-400 hover:border-slate-600' : 'border-slate-200 text-slate-500 hover:border-slate-300'
+                  }`}
+                >
+                  {s.charAt(0).toUpperCase() + s.slice(1)}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -225,7 +245,8 @@ function EnquiriesList() {
         ) : enquiries.length === 0 ? (
           <div className={`p-8 text-center text-sm ${dark ? 'text-slate-500' : 'text-slate-400'}`}>No enquiries found.</div>
         ) : (
-          <table className="w-full">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[600px]">
             <thead>
               <tr className={`border-b text-xs font-bold uppercase tracking-wider ${dark ? 'bg-slate-900 border-slate-800 text-slate-500' : 'bg-slate-50 border-slate-200 text-slate-400'}`}>
                 <th className="text-left px-4 py-3">#</th>
@@ -261,6 +282,7 @@ function EnquiriesList() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 

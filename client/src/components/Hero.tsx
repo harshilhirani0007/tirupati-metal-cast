@@ -42,8 +42,8 @@ export default function Hero() {
         </svg>
       </div>
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-16">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-16">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
           {/* Left Content */}
           <div>
             {/* Badge */}
@@ -62,7 +62,7 @@ export default function Hero() {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
-              className={`text-4xl sm:text-5xl lg:text-6xl font-black leading-tight mb-6 ${dark ? 'text-white' : 'text-slate-900'}`}
+              className={`text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-black leading-tight mb-6 ${dark ? 'text-white' : 'text-slate-900'}`}
             >
               Precision{' '}
               <span className="gradient-text">Metal Casting</span>
@@ -158,7 +158,7 @@ export default function Hero() {
               </div>
 
               {/* Stats row */}
-              <div className={`grid grid-cols-4 divide-x ${dark ? 'divide-slate-800' : 'divide-slate-100'}`}>
+              <div className={`grid grid-cols-2 sm:grid-cols-4 divide-x ${dark ? 'divide-slate-800' : 'divide-slate-100'}`}>
                 {stats.map(({ value, label }) => (
                   <div key={label} className="p-4 text-center">
                     <p className="text-orange-500 font-black text-xl">{value}</p>

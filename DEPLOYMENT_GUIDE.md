@@ -1,4 +1,4 @@
-# Deployment Guide - Shree Tirupati Metal Cast
+# Deployment Guide - Shri Tirupati Metal Cast
 
 ## Prerequisites
 

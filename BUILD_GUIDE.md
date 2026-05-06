@@ -1,4 +1,4 @@
-# Build Guide - Shree Tirupati Metal Cast
+# Build Guide - Shri Tirupati Metal Cast
 
 This guide explains how to build and verify the project.
 

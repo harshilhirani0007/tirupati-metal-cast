@@ -117,7 +117,8 @@ export default function ProductsPage() {
       </div>
 
       <div className={`rounded-2xl border overflow-hidden ${dark ? 'border-slate-800' : 'border-slate-200'}`}>
-        <table className="w-full">
+        <div className="overflow-x-auto">
+        <table className="w-full min-w-[500px]">
           <thead>
             <tr className={`border-b text-xs font-bold uppercase tracking-wider ${dark ? 'bg-slate-900 border-slate-800 text-slate-500' : 'bg-slate-50 border-slate-200 text-slate-400'}`}>
               <th className="text-left px-4 py-3">Category</th>
@@ -148,6 +149,7 @@ export default function ProductsPage() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* Modal */}
