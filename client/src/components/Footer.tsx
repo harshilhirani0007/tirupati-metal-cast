@@ -95,7 +95,7 @@ export default function Footer() {
             <p className="text-slate-400 text-sm mb-5">Send us your technical drawing and receive a detailed quote within 24 hours.</p>
             <Link
               to="/contact"
-              className="inline-flex items-center gap-2 px-5 py-3 bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold rounded-xl transition-all duration-200 glow-orange"
+              className="flex items-center justify-center gap-2 px-5 py-3 bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold rounded-xl transition-all duration-200 glow-orange w-full sm:w-auto"
             >
               Contact Us
               <ArrowRight size={14} />
