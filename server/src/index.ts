@@ -14,6 +14,8 @@ const PORT = Number(process.env.PORT ?? 4000);
 const allowedOrigins = [
   ...(process.env.CORS_ORIGIN ? [process.env.CORS_ORIGIN] : []),
   ...(process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim()) : []),
+  'https://www.shritirupatimetalcast.com',
+  'https://shritirupatimetalcast.com',
   'http://localhost:5173',
   'http://localhost:5174',
   'http://localhost:5175',
