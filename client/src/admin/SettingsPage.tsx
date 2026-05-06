@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Save, KeyRound, CheckCircle2, AlertCircle, Eye, EyeOff, Building2, Globe, Phone, Mail, MapPin, Calendar, Gauge } from 'lucide-react';
+import { Save, KeyRound, CheckCircle2, AlertCircle, Eye, EyeOff, Building2, Globe, Phone, Mail, MapPin, Calendar, Gauge, UserPlus } from 'lucide-react';
 import { useAuth, API_BASE } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import Toast from './Toast';
@@ -32,6 +32,10 @@ export default function SettingsPage() {
   const [pwForm, setPwForm] = useState({ currentPassword: '', newPassword: '', confirm: '' });
   const [pwSaving, setPwSaving] = useState(false);
   const [showPw, setShowPw] = useState({ current: false, new: false, confirm: false });
+
+  const [newAdmin, setNewAdmin] = useState({ name: '', email: '', password: '' });
+  const [newAdminSaving, setNewAdminSaving] = useState(false);
+  const [showNewPw, setShowNewPw] = useState(false);
 
   useEffect(() => {
     fetch(`${API_BASE}/settings`, { headers: { Authorization: `Bearer ${token}` } })
@@ -98,6 +102,30 @@ export default function SettingsPage() {
       setToast({ message: 'Error saving settings', type: 'error' });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const createAdmin = async () => {
+    if (!newAdmin.name || !newAdmin.email || !newAdmin.password) { setToast({ message: 'All fields are required', type: 'error' }); return; }
+    if (newAdmin.password.length < 6) { setToast({ message: 'Password must be at least 6 characters', type: 'error' }); return; }
+    setNewAdminSaving(true);
+    try {
+      const res = await fetch(`${API_BASE}/auth/create-admin`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(newAdmin),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setNewAdmin({ name: '', email: '', password: '' });
+        setToast({ message: `Admin account created for ${data.admin.email}`, type: 'success' });
+      } else {
+        setToast({ message: data.error || 'Failed to create admin', type: 'error' });
+      }
+    } catch {
+      setToast({ message: 'Error creating admin', type: 'error' });
+    } finally {
+      setNewAdminSaving(false);
     }
   };
 
@@ -250,6 +278,73 @@ export default function SettingsPage() {
             )}
           </button>
         </div>
+      </div>
+
+      {/* Create Admin Account */}
+      <div className={`${card} max-w-md`}>
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-9 h-9 rounded-xl bg-orange-500/10 flex items-center justify-center">
+            <UserPlus size={16} className="text-orange-500" />
+          </div>
+          <div>
+            <h2 className={`font-bold text-sm ${dark ? 'text-white' : 'text-slate-900'}`}>Create Admin Account</h2>
+            <p className={`text-xs ${dark ? 'text-slate-500' : 'text-slate-400'}`}>Add another admin login</p>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className={labelCls}>Name</label>
+            <input
+              type="text"
+              className={inputNormal.replace('pl-9', 'pl-3')}
+              placeholder="Full name"
+              value={newAdmin.name}
+              onChange={e => setNewAdmin({ ...newAdmin, name: e.target.value })}
+            />
+          </div>
+          <div>
+            <label className={labelCls}>Email</label>
+            <input
+              type="text"
+              className={inputNormal.replace('pl-9', 'pl-3')}
+              placeholder="email@example.com"
+              value={newAdmin.email}
+              onChange={e => setNewAdmin({ ...newAdmin, email: e.target.value })}
+            />
+          </div>
+          <div>
+            <label className={labelCls}>Password</label>
+            <div className="relative">
+              <input
+                type={showNewPw ? 'text' : 'password'}
+                className={pwInput}
+                placeholder="••••••••"
+                value={newAdmin.password}
+                onChange={e => setNewAdmin({ ...newAdmin, password: e.target.value })}
+              />
+              <button
+                type="button"
+                onClick={() => setShowNewPw(p => !p)}
+                className={`absolute right-3 top-1/2 -translate-y-1/2 transition-colors ${dark ? 'text-slate-500 hover:text-slate-300' : 'text-slate-400 hover:text-slate-600'}`}
+              >
+                {showNewPw ? <EyeOff size={15} /> : <Eye size={15} />}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <button
+          onClick={createAdmin}
+          disabled={newAdminSaving}
+          className="mt-5 w-full flex items-center justify-center gap-2 py-2.5 bg-orange-500 hover:bg-orange-600 disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-bold rounded-xl transition-colors"
+        >
+          {newAdminSaving ? (
+            <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Creating...</>
+          ) : (
+            <><UserPlus size={14} /> Create Admin</>
+          )}
+        </button>
       </div>
 
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}

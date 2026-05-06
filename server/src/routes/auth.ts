@@ -74,6 +74,34 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
   }
 });
 
+// POST /api/auth/create-admin  (admin only — add additional admins)
+router.post('/create-admin', authMiddleware, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { name, email, password } = req.body as { name: string; email: string; password: string };
+    if (!name || !email || !password) {
+      res.status(400).json({ error: 'Name, email and password are required' });
+      return;
+    }
+    if (password.length < 6) {
+      res.status(400).json({ error: 'Password must be at least 6 characters' });
+      return;
+    }
+    const existing = await queryOne<{ id: number }>('SELECT id FROM admins WHERE email=$1', [email.toLowerCase().trim()]);
+    if (existing) {
+      res.status(409).json({ error: 'An admin with that email already exists' });
+      return;
+    }
+    const hash = bcrypt.hashSync(password, 10);
+    const admin = await queryOne<Admin>(
+      'INSERT INTO admins (email, password, name) VALUES ($1, $2, $3) RETURNING id, email, name',
+      [email.toLowerCase().trim(), hash, name.trim()]
+    );
+    res.status(201).json({ message: 'Admin created', admin: { id: admin!.id, email: admin!.email, name: admin!.name } });
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
 // GET /api/auth/me
 router.get('/me', authMiddleware, async (req: Request, res: Response): Promise<void> => {
   try {
