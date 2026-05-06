@@ -155,52 +155,72 @@ export default function ProductsPage() {
           </button>
         </div>
       ) : (
-        <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5">
           {products.map(p => (
             <div
               key={p.id}
-              className={`group relative flex flex-col rounded-2xl border overflow-hidden transition-all hover:-translate-y-0.5 ${dark ? 'bg-slate-900 border-slate-800 hover:border-slate-700' : 'bg-white border-slate-200 hover:border-slate-300 hover:shadow-md'}`}
+              className={`group flex flex-col rounded-2xl border overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-xl ${
+                dark ? 'bg-slate-900 border-slate-800 hover:border-slate-600 hover:shadow-black/40' : 'bg-white border-slate-200 hover:border-orange-200 hover:shadow-orange-500/10'
+              }`}
             >
-              {/* Image or gradient header */}
-              <div className={`relative h-36 bg-gradient-to-br ${p.color} overflow-hidden`}>
+              {/* Image / gradient header */}
+              <div className={`relative overflow-hidden bg-gradient-to-br ${p.color}`} style={{ height: '180px' }}>
                 {p.image_url ? (
-                  <img src={p.image_url} alt={p.category} className="w-full h-full object-cover" />
+                  <img
+                    src={p.image_url}
+                    alt={p.category}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
                 ) : (
-                  <div className="flex items-center justify-center h-full">
-                    <Image size={32} className="text-white/20" />
-                  </div>
+                  <>
+                    <div className="absolute inset-0 opacity-20"
+                      style={{ backgroundImage: 'radial-gradient(circle at 70% 30%, rgba(255,255,255,0.3) 0%, transparent 60%)' }}
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Image size={40} className="text-white/15" />
+                    </div>
+                  </>
                 )}
-                {/* Active badge */}
+                {/* Dark overlay always */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+
+                {/* Category pinned bottom-left */}
+                <div className="absolute bottom-0 left-0 right-0 p-4">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-orange-400 mb-0.5">{p.grade}</p>
+                  <h3 className="text-white font-black text-base leading-tight">{p.category}</h3>
+                </div>
+
+                {/* Active toggle top-right */}
                 <div className="absolute top-3 right-3">
                   <button
                     onClick={() => toggleActive(p)}
-                    className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-bold border backdrop-blur-sm transition-colors ${
+                    className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold border backdrop-blur-md transition-colors ${
                       p.active
-                        ? 'bg-green-500/20 text-green-300 border-green-500/30'
-                        : 'bg-black/30 text-white/60 border-white/20'
+                        ? 'bg-green-500/25 text-green-300 border-green-400/30'
+                        : 'bg-black/40 text-white/50 border-white/20'
                     }`}
                   >
-                    {p.active ? <ToggleRight size={12} /> : <ToggleLeft size={12} />}
-                    {p.active ? 'Active' : 'Inactive'}
+                    {p.active ? <ToggleRight size={13} /> : <ToggleLeft size={13} />}
+                    {p.active ? 'Active' : 'Off'}
                   </button>
                 </div>
               </div>
 
               {/* Content */}
-              <div className="flex-1 p-4">
-                <h3 className={`font-black text-sm mb-1 ${dark ? 'text-white' : 'text-slate-900'}`}>{p.category}</h3>
-                <p className={`text-xs mb-2 ${dark ? 'text-slate-500' : 'text-slate-400'}`}>{p.grade}</p>
-                <p className={`text-xs leading-relaxed line-clamp-2 mb-3 ${dark ? 'text-slate-400' : 'text-slate-600'}`}>{p.description}</p>
+              <div className="flex-1 p-5">
+                <p className={`text-xs leading-relaxed mb-4 ${dark ? 'text-slate-400' : 'text-slate-600'}`}>
+                  {p.description}
+                </p>
                 {p.applications.length > 0 && (
-                  <div className="flex flex-wrap gap-1">
-                    {p.applications.slice(0, 3).map(app => (
-                      <span key={app} className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${dark ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-500'}`}>
+                  <div className="flex flex-wrap gap-1.5">
+                    {p.applications.slice(0, 4).map(app => (
+                      <span key={app} className={`px-2 py-0.5 rounded-md text-[10px] font-semibold border ${dark ? 'bg-slate-800 text-slate-400 border-slate-700' : 'bg-slate-50 text-slate-500 border-slate-200'}`}>
                         {app}
                       </span>
                     ))}
-                    {p.applications.length > 3 && (
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${dark ? 'bg-slate-800 text-slate-500' : 'bg-slate-100 text-slate-400'}`}>
-                        +{p.applications.length - 3}
+                    {p.applications.length > 4 && (
+                      <span className={`px-2 py-0.5 rounded-md text-[10px] font-semibold border ${dark ? 'bg-slate-800 text-slate-500 border-slate-700' : 'bg-slate-50 text-slate-400 border-slate-200'}`}>
+                        +{p.applications.length - 4}
                       </span>
                     )}
                   </div>
@@ -211,15 +231,17 @@ export default function ProductsPage() {
               <div className={`flex items-center gap-2 px-4 py-3 border-t ${dark ? 'border-slate-800' : 'border-slate-100'}`}>
                 <button
                   onClick={() => openEdit(p)}
-                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold border transition-colors ${dark ? 'border-slate-700 text-slate-400 hover:text-white hover:bg-slate-800' : 'border-slate-200 text-slate-500 hover:text-slate-900 hover:bg-slate-50'}`}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold border transition-colors ${
+                    dark ? 'border-slate-700 text-slate-400 hover:text-white hover:bg-slate-800' : 'border-slate-200 text-slate-500 hover:text-slate-900 hover:bg-slate-50'
+                  }`}
                 >
                   <Pencil size={12} /> Edit
                 </button>
                 <button
                   onClick={() => setDeleteModal({ open: true, id: p.id })}
-                  className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-bold border border-red-500/20 text-red-400 hover:bg-red-500/10 transition-colors"
+                  className="p-2 rounded-xl border border-red-500/20 text-red-400 hover:bg-red-500/10 transition-colors"
                 >
-                  <Trash2 size={12} />
+                  <Trash2 size={13} />
                 </button>
               </div>
             </div>

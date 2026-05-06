@@ -5,6 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "ts-node src/index.ts",
+    "dev:local": "ts-node -r dotenv/config src/index.ts dotenv_config_path=.env.local",
     "build": "tsc",
     "start": "node dist/index.js",
     "render-start": "npm run build && node dist/index.js"

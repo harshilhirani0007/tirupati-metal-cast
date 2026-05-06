@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { ArrowRight, Layers } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { API_BASE } from '../context/AuthContext';
 import { Product } from '../types';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 40 },
-  visible: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.1, duration: 0.55 } }),
+  visible: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.08, duration: 0.55 } }),
 };
 
 export default function Products() {
@@ -25,6 +26,8 @@ export default function Products() {
   return (
     <section id="products" className={`py-20 lg:py-28 ${dark ? 'bg-slate-950' : 'bg-slate-50'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        {/* Section heading */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -41,77 +44,95 @@ export default function Products() {
           </p>
         </motion.div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Product grid */}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-7">
           {products.map((product, i) => (
             <motion.div
               key={product.id}
-              initial="hidden" whileInView="visible" viewport={{ once: true }} custom={i} variants={fadeUp}
-              className={`group rounded-2xl overflow-hidden border card-hover ${
-                dark ? 'border-slate-800 bg-slate-900' : 'border-slate-200 bg-white shadow-sm hover:shadow-xl'
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              custom={i}
+              variants={fadeUp}
+              className={`group flex flex-col rounded-3xl overflow-hidden border transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl ${
+                dark
+                  ? 'bg-slate-900 border-slate-800 hover:border-slate-700 hover:shadow-black/40'
+                  : 'bg-white border-slate-200 hover:border-orange-200 hover:shadow-orange-500/10'
               }`}
             >
-              {/* Card header — image or gradient */}
-              <div className={`relative h-44 bg-gradient-to-br ${product.color} overflow-hidden`}>
+              {/* ── Image / Gradient header ── */}
+              <div className={`relative overflow-hidden bg-gradient-to-br ${product.color}`} style={{ height: '220px' }}>
                 {product.image_url ? (
                   <img
                     src={product.image_url}
                     alt={product.category}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
                   />
                 ) : (
+                  /* No image — decorative gradient placeholder */
                   <>
-                    <div className="absolute -right-6 -top-6 w-24 h-24 rounded-full opacity-20 bg-white" />
-                    <div className="absolute inset-0 flex items-end p-6">
-                      <div>
-                        <span className="text-xs font-bold tracking-widest uppercase text-white/60 block mb-1">Grade: {product.grade}</span>
-                        <h3 className="text-white font-black text-xl">{product.category}</h3>
-                      </div>
+                    <div className="absolute inset-0 opacity-30"
+                      style={{ backgroundImage: 'radial-gradient(circle at 70% 30%, rgba(255,255,255,0.25) 0%, transparent 60%)' }}
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Layers size={52} className="text-white/15" />
                     </div>
                   </>
                 )}
-                {product.image_url && (
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-5">
-                    <div>
-                      <span className="text-xs font-bold tracking-widest uppercase text-white/60 block mb-1">Grade: {product.grade}</span>
-                      <h3 className="text-white font-black text-lg leading-tight">{product.category}</h3>
-                    </div>
-                  </div>
-                )}
-              </div>
 
-              {/* Card body */}
-              <div className="p-6">
-                {!product.image_url && (
-                  <p className={`text-xs font-bold uppercase tracking-widest mb-2 ${dark ? 'text-slate-500' : 'text-slate-400'}`}>Grade: {product.grade}</p>
-                )}
-                <p className={`text-sm leading-relaxed mb-5 ${dark ? 'text-slate-400' : 'text-slate-600'}`}>
-                  {product.description}
-                </p>
-                <div>
-                  <p className={`text-xs font-bold uppercase tracking-wider mb-3 ${dark ? 'text-slate-500' : 'text-slate-400'}`}>Applications</p>
-                  <div className="flex flex-wrap gap-2">
-                    {product.applications.map(app => (
-                      <span
-                        key={app}
-                        className={`px-2.5 py-1 rounded-lg text-xs font-medium ${
-                          dark ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-600'
-                        }`}
-                      >
-                        {app}
-                      </span>
-                    ))}
-                  </div>
+                {/* Always-visible gradient overlay at bottom */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
+                {/* Category + grade pinned to bottom of image */}
+                <div className="absolute bottom-0 left-0 right-0 p-5">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-orange-400 mb-1">
+                    {product.grade}
+                  </p>
+                  <h3 className="text-white font-black text-xl leading-tight drop-shadow-sm">
+                    {product.category}
+                  </h3>
                 </div>
               </div>
 
-              {/* Card footer */}
-              <div className={`px-6 py-4 border-t ${dark ? 'border-slate-800' : 'border-slate-100'}`}>
-                <Link
-                  to="/contact"
-                  className="text-orange-500 text-sm font-semibold hover:text-orange-400 transition-colors flex items-center gap-1 group-hover:gap-2"
-                >
-                  Request this casting →
-                </Link>
+              {/* ── Card body ── */}
+              <div className="flex flex-col flex-1 p-6">
+                <p className={`text-sm leading-relaxed flex-1 ${dark ? 'text-slate-400' : 'text-slate-600'}`}>
+                  {product.description}
+                </p>
+
+                {/* Applications */}
+                {product.applications.length > 0 && (
+                  <div className="mt-5">
+                    <p className={`text-[10px] font-bold uppercase tracking-widest mb-2.5 ${dark ? 'text-slate-500' : 'text-slate-400'}`}>
+                      Applications
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {product.applications.map(app => (
+                        <span
+                          key={app}
+                          className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold ${
+                            dark
+                              ? 'bg-slate-800 text-slate-300 border border-slate-700'
+                              : 'bg-slate-100 text-slate-600 border border-slate-200'
+                          }`}
+                        >
+                          {app}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* CTA */}
+                <div className={`mt-6 pt-5 border-t ${dark ? 'border-slate-800' : 'border-slate-100'}`}>
+                  <Link
+                    to="/contact"
+                    className="flex items-center gap-2 text-orange-500 text-sm font-bold hover:text-orange-400 transition-colors group/link"
+                  >
+                    Request this casting
+                    <ArrowRight size={14} className="group-hover/link:translate-x-1 transition-transform" />
+                  </Link>
+                </div>
               </div>
             </motion.div>
           ))}
