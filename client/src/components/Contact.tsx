@@ -12,6 +12,23 @@ export default function Contact() {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({ name: '', company: '', email: '', phone: '', message: '' });
+  const [emailError, setEmailError] = useState('');
+
+  const validateEmail = (val: string) => {
+    if (!val) { setEmailError(''); return; }
+    setEmailError(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val) ? '' : 'Please enter a valid email address');
+  };
+
+  const handlePhoneKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // allow: digits, +, Backspace, Delete, Tab, ArrowLeft, ArrowRight, Home, End
+    if (!/[\d+]/.test(e.key) && !['Backspace','Delete','Tab','ArrowLeft','ArrowRight','Home','End'].includes(e.key)) {
+      e.preventDefault();
+    }
+    // allow + only at position 0
+    if (e.key === '+' && (e.currentTarget.selectionStart ?? 0) > 0) {
+      e.preventDefault();
+    }
+  };
 
   const contactInfo = [
     ...(settings.address ? [{ icon: MapPin, label: 'Address', value: settings.address, type: 'text' }] : []),
@@ -23,6 +40,8 @@ export default function Contact() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (submitting) return;
+    validateEmail(form.email);
+    if (emailError || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) return;
     setSubmitting(true);
     try {
       const res = await fetch(`${API_BASE}/enquiries`, {
@@ -172,10 +191,12 @@ export default function Contact() {
                       required
                       type="email"
                       placeholder="you@company.com"
-                      className={inputClass}
+                      className={`${inputClass} ${emailError ? 'border-red-400 focus:border-red-400 focus:ring-red-500/20' : ''}`}
                       value={form.email}
-                      onChange={e => setForm({ ...form, email: e.target.value })}
+                      onChange={e => { setForm({ ...form, email: e.target.value }); validateEmail(e.target.value); }}
+                      onBlur={e => validateEmail(e.target.value)}
                     />
+                    {emailError && <p className="mt-1.5 text-xs text-red-400">{emailError}</p>}
                   </div>
                   <div>
                     <label className={`block text-xs font-semibold mb-1.5 ${dark ? 'text-slate-400' : 'text-slate-600'}`}>Phone Number</label>
@@ -185,6 +206,11 @@ export default function Contact() {
                       className={inputClass}
                       value={form.phone}
                       onChange={e => setForm({ ...form, phone: e.target.value })}
+                      onKeyDown={handlePhoneKey}
+                      onPaste={e => {
+                        const pasted = e.clipboardData.getData('text');
+                        if (!/^[+\d]+$/.test(pasted)) e.preventDefault();
+                      }}
                     />
                   </div>
                 </div>
