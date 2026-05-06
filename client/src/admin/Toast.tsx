@@ -17,31 +17,27 @@ export default function Toast({ message, type, onClose, duration = 3000 }: Toast
   const isSuccess = type === 'success';
 
   return (
-    <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-top-5 fade-in">
+    <div className="fixed top-4 right-4 z-[9999] animate-in slide-in-from-top-5 fade-in">
       <div
-        className={`flex items-start gap-3 px-4 py-3.5 rounded-xl border shadow-lg backdrop-blur-sm ${
+        className={`flex items-start gap-3 px-4 py-3.5 rounded-xl border shadow-2xl ${
           isSuccess
-            ? 'bg-green-500/10 border-green-500/30'
-            : 'bg-red-500/10 border-red-500/30'
+            ? 'bg-green-600 border-green-500'
+            : 'bg-red-600 border-red-500'
         }`}
       >
         {isSuccess ? (
-          <CheckCircle2 size={18} className="text-green-400 mt-0.5 shrink-0" />
+          <CheckCircle2 size={18} className="text-white mt-0.5 shrink-0" />
         ) : (
-          <AlertCircle size={18} className="text-red-400 mt-0.5 shrink-0" />
+          <AlertCircle size={18} className="text-white mt-0.5 shrink-0" />
         )}
-        <p className={`text-sm font-medium ${isSuccess ? 'text-green-400' : 'text-red-400'}`}>
+        <p className="text-sm font-medium text-white">
           {message}
         </p>
         <button
           onClick={onClose}
-          className={`ml-2 p-0.5 rounded transition-colors ${
-            isSuccess
-              ? 'text-green-400 hover:bg-green-500/20'
-              : 'text-red-400 hover:bg-red-500/20'
-          }`}
+          className="ml-2 p-0.5 rounded transition-colors text-white hover:bg-white/20"
         >
-          <X size={16} />
+          <X size={16} className="text-white" />
         </button>
       </div>
     </div>
