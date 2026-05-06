@@ -68,10 +68,20 @@ export default function TestimonialsPage() {
   const confirmDelete = async () => {
     if (deleteModal.id === null) return;
     setDeleting(true);
-    await fetch(`${API_BASE}/testimonials/${deleteModal.id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
-    setDeleteModal({ open: false, id: null });
-    setDeleting(false);
-    load();
+    try {
+      const res = await fetch(`${API_BASE}/testimonials/${deleteModal.id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+      setDeleteModal({ open: false, id: null });
+      if (res.ok) {
+        load();
+        setToast({ message: 'Testimonial deleted successfully', type: 'success' });
+      } else {
+        setToast({ message: 'Failed to delete testimonial', type: 'error' });
+      }
+    } catch {
+      setToast({ message: 'Error deleting testimonial', type: 'error' });
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const inputCls = `w-full px-3 py-2.5 rounded-xl border text-sm outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-500 transition-all ${dark ? 'bg-slate-800 border-slate-700 text-white placeholder-slate-500' : 'bg-slate-50 border-slate-200 text-slate-900'}`;

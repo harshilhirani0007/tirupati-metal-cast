@@ -7,6 +7,7 @@ import { Enquiry, PaginatedResponse } from '../types';
 import DeleteModal from './DeleteModal';
 import Toast from './Toast';
 
+
 const statusColors: Record<string, string> = {
   new: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
   read: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
@@ -158,6 +159,7 @@ function EnquiriesList() {
   const [loading, setLoading] = useState(true);
   const [deleteModal, setDeleteModal] = useState<{ open: boolean; id: number | null; name: string }>({ open: false, id: null, name: '' });
   const [deleting, setDeleting] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   const load = () => {
     setLoading(true);
@@ -173,10 +175,20 @@ function EnquiriesList() {
   const confirmDelete = async () => {
     if (deleteModal.id === null) return;
     setDeleting(true);
-    await fetch(`${API_BASE}/enquiries/${deleteModal.id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
-    setDeleteModal({ open: false, id: null, name: '' });
-    setDeleting(false);
-    load();
+    try {
+      const res = await fetch(`${API_BASE}/enquiries/${deleteModal.id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+      setDeleteModal({ open: false, id: null, name: '' });
+      if (res.ok) {
+        load();
+        setToast({ message: 'Enquiry deleted successfully', type: 'success' });
+      } else {
+        setToast({ message: 'Failed to delete enquiry', type: 'error' });
+      }
+    } catch {
+      setToast({ message: 'Error deleting enquiry', type: 'error' });
+    } finally {
+      setDeleting(false);
+    }
   };
 
   return (
@@ -261,6 +273,8 @@ function EnquiriesList() {
         onCancel={() => setDeleteModal({ open: false, id: null, name: '' })}
         loading={deleting}
       />
+
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
   );
 }
