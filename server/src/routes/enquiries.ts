@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { query, queryOne } from '../db';
 import { authMiddleware } from '../middleware/auth';
 import { Enquiry, EnquiryStats } from '../types';
+import { sendReply } from '../mailer';
 
 const router = Router();
 
@@ -99,6 +100,26 @@ router.put('/:id/status', authMiddleware, async (req: Request, res: Response): P
     }
     await query('UPDATE enquiries SET status=$1 WHERE id=$2', [status, String(req.params.id)]);
     res.json({ message: 'Status updated' });
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+// POST /api/enquiries/:id/reply  (admin)
+router.post('/:id/reply', authMiddleware, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const enq = await queryOne<Enquiry>('SELECT * FROM enquiries WHERE id=$1', [String(req.params.id)]);
+    if (!enq) { res.status(404).json({ error: 'Enquiry not found' }); return; }
+
+    const { subject, body } = req.body as { subject: string; body: string };
+    if (!subject?.trim() || !body?.trim()) {
+      res.status(400).json({ error: 'Subject and body are required' });
+      return;
+    }
+
+    await sendReply({ to: enq.email, toName: enq.name, subject, body, fromName: req.admin?.name ?? 'Admin' });
+    await query("UPDATE enquiries SET status='replied' WHERE id=$1", [enq.id]);
+    res.json({ message: 'Reply sent successfully' });
   } catch (err) {
     res.status(500).json({ error: (err as Error).message });
   }

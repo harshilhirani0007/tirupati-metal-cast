@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Trash2, RefreshCw, Mail, Building, Phone, User, Calendar, MessageSquare, Filter } from 'lucide-react';
+import { ArrowLeft, Trash2, RefreshCw, Mail, Building, Phone, User, Calendar, MessageSquare, Filter, Send, X } from 'lucide-react';
 import { useAuth, API_BASE } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { Enquiry, PaginatedResponse } from '../types';
@@ -35,6 +35,9 @@ function EnquiryDetail() {
   const [deleting, setDeleting] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
+  const [replyModal, setReplyModal] = useState(false);
+  const [replyForm, setReplyForm] = useState({ subject: '', body: '' });
+  const [replying, setReplying] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -60,6 +63,39 @@ function EnquiryDetail() {
       setToast({ message: 'Error updating status', type: 'error' });
     } finally {
       setUpdatingStatus(null);
+    }
+  };
+
+  const openReply = () => {
+    setReplyForm({ subject: `Re: Enquiry from ${enq?.company}`, body: '' });
+    setReplyModal(true);
+  };
+
+  const sendReply = async () => {
+    if (!replyForm.subject.trim() || !replyForm.body.trim()) {
+      setToast({ message: 'Subject and message are required', type: 'error' });
+      return;
+    }
+    setReplying(true);
+    try {
+      const res = await fetch(`${API_BASE}/enquiries/${id}/reply`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(replyForm),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setReplyModal(false);
+        setReplyForm({ subject: '', body: '' });
+        setEnq(prev => prev ? { ...prev, status: 'replied' } : null);
+        setToast({ message: 'Reply sent successfully', type: 'success' });
+      } else {
+        setToast({ message: data.error || 'Failed to send reply', type: 'error' });
+      }
+    } catch {
+      setToast({ message: 'Error sending reply', type: 'error' });
+    } finally {
+      setReplying(false);
     }
   };
 
@@ -171,12 +207,12 @@ function EnquiryDetail() {
           <div className={card}>
             <h2 className={`text-xs font-bold uppercase tracking-widest mb-4 ${dark ? 'text-slate-500' : 'text-slate-400'}`}>Quick Actions</h2>
             <div className="grid grid-cols-2 gap-2">
-              <a
-                href={`mailto:${enq.email}`}
+              <button
+                onClick={openReply}
                 className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border border-blue-500/20 transition-colors"
               >
                 <Mail size={14} /> Reply via Email
-              </a>
+              </button>
               {enq.phone && (
                 <a
                   href={`tel:${enq.phone}`}
@@ -232,6 +268,67 @@ function EnquiryDetail() {
         onCancel={() => setDeleteModal(false)}
         loading={deleting}
       />
+
+      {/* Reply Modal */}
+      {replyModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+          <div className={`w-full max-w-lg rounded-3xl border shadow-2xl ${dark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+            <div className={`flex items-center justify-between px-6 py-5 border-b ${dark ? 'border-slate-800' : 'border-slate-100'}`}>
+              <div>
+                <h2 className={`font-black text-lg ${dark ? 'text-white' : 'text-slate-900'}`}>Reply to Enquiry</h2>
+                <p className={`text-xs mt-0.5 ${dark ? 'text-slate-500' : 'text-slate-400'}`}>Sending to {enq.name} &lt;{enq.email}&gt;</p>
+              </div>
+              <button
+                onClick={() => setReplyModal(false)}
+                className={`p-2 rounded-xl transition-colors ${dark ? 'text-slate-400 hover:text-white hover:bg-slate-800' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100'}`}
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <div className="px-6 py-5 space-y-4">
+              <div>
+                <label className={`block text-xs font-bold mb-1.5 ${dark ? 'text-slate-400' : 'text-slate-600'}`}>Subject</label>
+                <input
+                  type="text"
+                  className={`w-full px-3 py-2.5 rounded-xl border text-sm outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-500 transition-all ${dark ? 'bg-slate-800 border-slate-700 text-white placeholder-slate-500' : 'bg-slate-50 border-slate-200 text-slate-900'}`}
+                  value={replyForm.subject}
+                  onChange={e => setReplyForm({ ...replyForm, subject: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className={`block text-xs font-bold mb-1.5 ${dark ? 'text-slate-400' : 'text-slate-600'}`}>Message</label>
+                <textarea
+                  rows={7}
+                  className={`w-full px-3 py-2.5 rounded-xl border text-sm outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-500 transition-all resize-none ${dark ? 'bg-slate-800 border-slate-700 text-white placeholder-slate-500' : 'bg-slate-50 border-slate-200 text-slate-900'}`}
+                  placeholder={`Dear ${enq.name},\n\nThank you for your enquiry...`}
+                  value={replyForm.body}
+                  onChange={e => setReplyForm({ ...replyForm, body: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className={`flex gap-3 px-6 py-4 border-t ${dark ? 'border-slate-800' : 'border-slate-100'}`}>
+              <button
+                onClick={() => setReplyModal(false)}
+                disabled={replying}
+                className={`flex-1 py-2.5 rounded-xl border text-sm font-bold transition-colors ${dark ? 'border-slate-700 text-slate-400 hover:bg-slate-800 disabled:opacity-50' : 'border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-50'}`}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={sendReply}
+                disabled={replying}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-blue-500 hover:bg-blue-600 disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-bold rounded-xl transition-colors"
+              >
+                {replying ? (
+                  <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Sending...</>
+                ) : (
+                  <><Send size={14} /> Send Reply</>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
