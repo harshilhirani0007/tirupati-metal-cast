@@ -43,7 +43,7 @@ export default function About() {
             <span className="gradient-text">Purpose</span>
           </h2>
           <p className={`max-w-2xl text-lg ${dark ? 'text-slate-400' : 'text-slate-600'}`}>
-            Shree Tirupati Metal Cast has been a cornerstone of India's casting industry — delivering precision components that power machines, vehicles, and industries worldwide.
+            Shri Tirupati Metal Cast has been a cornerstone of India's casting industry — delivering precision components that power machines, vehicles, and industries worldwide.
           </p>
         </motion.div>
 

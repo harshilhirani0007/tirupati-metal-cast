@@ -27,7 +27,7 @@ export default function WhyUs() {
         >
           <span className="text-orange-500 text-sm font-bold tracking-[0.2em] uppercase mb-3 block">Our Edge</span>
           <h2 className={`text-3xl sm:text-4xl lg:text-5xl font-black mb-4 ${dark ? 'text-white' : 'text-slate-900'}`}>
-            Why Choose <span className="gradient-text">Shree Tirupati</span>
+            Why Choose <span className="gradient-text">Shri Tirupati</span>
           </h2>
           <p className={`max-w-2xl mx-auto text-lg ${dark ? 'text-slate-400' : 'text-slate-600'}`}>
             We're not just a foundry — we're an engineering partner committed to your success.

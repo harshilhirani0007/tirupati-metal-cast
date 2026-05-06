@@ -125,7 +125,7 @@ export default function LoginPage() {
             <Cog size={28} className="text-white" />
           </div>
           <h1 className={`text-2xl font-black ${dark ? 'text-white' : 'text-slate-900'}`}>Admin Panel</h1>
-          <p className={`text-sm mt-1 ${dark ? 'text-slate-500' : 'text-slate-500'}`}>Shree Tirupati Metal Cast</p>
+          <p className={`text-sm mt-1 ${dark ? 'text-slate-500' : 'text-slate-500'}`}>Shri Tirupati Metal Cast</p>
         </div>
 
         {/* Server error */}

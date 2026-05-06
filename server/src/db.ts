@@ -74,11 +74,11 @@ async function init(): Promise<void> {
 
   // Seed default settings
   const defaults: [string, string][] = [
-    ['company_name', 'Shree Tirupati Metal Cast'],
+    ['company_name', 'Shri Tirupati Metal Cast'],
     ['tagline', 'Precision Metal Casting Built to Last'],
     ['phone', '+91 98242 79626'],
     ['email', 'shreetirupatimetalcast@yahoo.com'],
-    ['address', 'Shree Tirupati Metal Cast, Gujarat, India'],
+    ['address', 'Shri Tirupati Metal Cast, Gujarat, India'],
     ['founded', ''],
     ['capacity', ''],
   ];

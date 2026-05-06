@@ -76,7 +76,7 @@ export default function Hero() {
               transition={{ duration: 0.6, delay: 0.2 }}
               className={`text-lg leading-relaxed mb-8 max-w-lg ${dark ? 'text-slate-400' : 'text-slate-600'}`}
             >
-              Shree Tirupati Metal Cast delivers high-quality grey iron, ductile iron, and alloy steel castings for automotive, industrial, and agricultural sectors — engineered with precision, delivered on time.
+              Shri Tirupati Metal Cast delivers high-quality grey iron, ductile iron, and alloy steel castings for automotive, industrial, and agricultural sectors — engineered with precision, delivered on time.
             </motion.p>
 
             {/* Badges */}

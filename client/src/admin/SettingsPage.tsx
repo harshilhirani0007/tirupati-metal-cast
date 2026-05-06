@@ -24,7 +24,7 @@ export default function SettingsPage() {
   const [pwSaving, setPwSaving] = useState(false);
 
   const settingFields = [
-    { key: 'company_name', label: 'Company Name', placeholder: 'Shree Tirupati Metal Cast' },
+    { key: 'company_name', label: 'Company Name', placeholder: 'Shri Tirupati Metal Cast' },
     { key: 'tagline', label: 'Tagline', placeholder: 'Precision metal castings for industry' },
     { key: 'phone', label: 'Phone Number', placeholder: '+91 98242 79626', type: 'text' },
     { key: 'email', label: 'Email Address', placeholder: 'company@example.com', type: 'email' },
