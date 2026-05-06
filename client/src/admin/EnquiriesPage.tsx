@@ -1,19 +1,28 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Trash2, RefreshCw, Mail, Building, Phone } from 'lucide-react';
+import { ArrowLeft, Trash2, RefreshCw, Mail, Building, Phone, User, Calendar, MessageSquare, Filter } from 'lucide-react';
 import { useAuth, API_BASE } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { Enquiry, PaginatedResponse } from '../types';
 import DeleteModal from './DeleteModal';
 import Toast from './Toast';
 
+const STATUS_CFG = {
+  new:      { color: 'bg-orange-500/15 text-orange-400 border border-orange-500/25', dot: 'bg-orange-400' },
+  read:     { color: 'bg-blue-500/15 text-blue-400 border border-blue-500/25',   dot: 'bg-blue-400'   },
+  replied:  { color: 'bg-green-500/15 text-green-400 border border-green-500/25', dot: 'bg-green-400'  },
+  archived: { color: 'bg-slate-500/15 text-slate-400 border border-slate-500/25', dot: 'bg-slate-400'  },
+} as const;
 
-const statusColors: Record<string, string> = {
-  new: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
-  read: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-  replied: 'bg-green-500/20 text-green-400 border-green-500/30',
-  archived: 'bg-slate-500/20 text-slate-400 border-slate-500/30',
-};
+function StatusBadge({ status }: { status: string }) {
+  const cfg = STATUS_CFG[status as keyof typeof STATUS_CFG];
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold ${cfg?.color ?? ''}`}>
+      <span className={`w-1.5 h-1.5 rounded-full ${cfg?.dot ?? 'bg-slate-400'}`} />
+      {status.charAt(0).toUpperCase() + status.slice(1)}
+    </span>
+  );
+}
 
 function EnquiryDetail() {
   const { id } = useParams<{ id: string }>();
@@ -25,15 +34,16 @@ function EnquiryDetail() {
   const [deleteModal, setDeleteModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
     fetch(`${API_BASE}/enquiries/${id}`, { headers: { Authorization: `Bearer ${token}` } })
-      .then(r => r.json() as Promise<Enquiry>)
-      .then(setEnq);
+      .then(r => r.json() as Promise<Enquiry>).then(setEnq);
   }, [id, token]);
 
   const updateStatus = async (status: Enquiry['status']) => {
+    setUpdatingStatus(status);
     try {
       const res = await fetch(`${API_BASE}/enquiries/${id}/status`, {
         method: 'PUT',
@@ -42,12 +52,14 @@ function EnquiryDetail() {
       });
       if (res.ok) {
         setEnq(prev => prev ? { ...prev, status } : null);
-        setToast({ message: 'Status updated successfully', type: 'success' });
+        setToast({ message: 'Status updated', type: 'success' });
       } else {
         setToast({ message: 'Failed to update status', type: 'error' });
       }
     } catch {
       setToast({ message: 'Error updating status', type: 'error' });
+    } finally {
+      setUpdatingStatus(null);
     }
   };
 
@@ -57,92 +69,155 @@ function EnquiryDetail() {
       const res = await fetch(`${API_BASE}/enquiries/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
       if (res.ok) {
         setDeleteModal(false);
-        setToast({ message: 'Enquiry deleted successfully', type: 'success' });
+        setToast({ message: 'Enquiry deleted', type: 'success' });
         setTimeout(() => navigate('/admin/enquiries'), 500);
       } else {
-        setToast({ message: 'Failed to delete enquiry', type: 'error' });
+        setToast({ message: 'Failed to delete', type: 'error' });
       }
     } catch {
-      setToast({ message: 'Error deleting enquiry', type: 'error' });
+      setToast({ message: 'Error deleting', type: 'error' });
     } finally {
       setDeleting(false);
     }
   };
 
-  if (!enq) return <div className={`text-sm ${dark ? 'text-slate-500' : 'text-slate-400'}`}>Loading…</div>;
+  if (!enq) return (
+    <div className="flex items-center justify-center h-40">
+      <div className="w-6 h-6 border-2 border-orange-500/30 border-t-orange-500 rounded-full animate-spin" />
+    </div>
+  );
 
-  const fields: { icon: typeof Mail; label: string; value: string }[] = [
-    { icon: Mail, label: 'Name', value: enq.name },
-    { icon: Building, label: 'Company', value: enq.company },
-    { icon: Mail, label: 'Email', value: enq.email },
-    { icon: Phone, label: 'Phone', value: enq.phone || 'N/A' },
-  ];
+  const card = `p-5 rounded-2xl border ${dark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`;
 
   return (
-    <div className="space-y-6 w-full">
+    <div className="space-y-5 max-w-7xl">
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
-          <Link to="/admin/enquiries" className={`p-2 rounded-xl border ${dark ? 'border-slate-800 text-slate-400 hover:text-white' : 'border-slate-200 text-slate-500 hover:text-slate-900'}`}>
-            <ArrowLeft size={16} />
+          <Link
+            to="/admin/enquiries"
+            className={`p-2 rounded-xl border transition-colors ${dark ? 'border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800' : 'border-slate-200 text-slate-500 hover:text-slate-900 hover:bg-slate-100'}`}
+          >
+            <ArrowLeft size={15} />
           </Link>
-          <h1 className={`text-2xl font-black ${dark ? 'text-white' : 'text-slate-900'}`}>Enquiry #{enq.id}</h1>
-          <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${statusColors[enq.status]}`}>{enq.status}</span>
+          <div>
+            <h1 className={`text-xl font-black ${dark ? 'text-white' : 'text-slate-900'}`}>Enquiry #{enq.id}</h1>
+            <p className={`text-xs mt-0.5 ${dark ? 'text-slate-500' : 'text-slate-400'}`}>
+              {new Date(enq.created_at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}
+            </p>
+          </div>
+          <StatusBadge status={enq.status} />
         </div>
-        <button onClick={() => setDeleteModal(true)} className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors">
-          <Trash2 size={14} /> Delete Enquiry
+        <button
+          onClick={() => setDeleteModal(true)}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors"
+        >
+          <Trash2 size={14} /> Delete
         </button>
       </div>
 
-      {/* Main Content */}
-      <div className="grid lg:grid-cols-3 gap-6">
-        {/* Left — Contact Details */}
-        <div className="lg:col-span-1 space-y-4">
-          <div className={`p-6 rounded-2xl border ${dark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-sm'}`}>
-            <h2 className={`text-sm font-bold uppercase tracking-wider mb-4 ${dark ? 'text-slate-400' : 'text-slate-500'}`}>Contact Details</h2>
-            <div className="space-y-4">
-              {fields.map(({ icon: Icon, label, value }) => (
-                <div key={label} className={`p-4 rounded-xl ${dark ? 'bg-slate-800' : 'bg-slate-50'}`}>
-                  <div className="flex items-center gap-2 mb-1">
+      <div className="grid lg:grid-cols-3 gap-5">
+        {/* Left */}
+        <div className="space-y-4">
+          {/* Contact info */}
+          <div className={card}>
+            <h2 className={`text-xs font-bold uppercase tracking-widest mb-4 ${dark ? 'text-slate-500' : 'text-slate-400'}`}>Contact Details</h2>
+            <div className="space-y-3">
+              {[
+                { icon: User,     label: 'Name',    value: enq.name },
+                { icon: Building, label: 'Company', value: enq.company },
+                { icon: Mail,     label: 'Email',   value: enq.email },
+                { icon: Phone,    label: 'Phone',   value: enq.phone || 'Not provided' },
+              ].map(({ icon: Icon, label, value }) => (
+                <div key={label} className={`flex items-start gap-3 p-3 rounded-xl ${dark ? 'bg-slate-800' : 'bg-slate-50'}`}>
+                  <div className="w-7 h-7 rounded-lg bg-orange-500/10 flex items-center justify-center shrink-0 mt-0.5">
                     <Icon size={13} className="text-orange-500" />
-                    <span className={`text-xs font-bold ${dark ? 'text-slate-500' : 'text-slate-400'}`}>{label}</span>
                   </div>
-                  <p className={`text-sm font-semibold ${dark ? 'text-white' : 'text-slate-900'}`}>{value}</p>
+                  <div className="min-w-0">
+                    <p className={`text-[10px] font-bold uppercase tracking-wider ${dark ? 'text-slate-500' : 'text-slate-400'}`}>{label}</p>
+                    <p className={`text-sm font-semibold mt-0.5 break-all ${dark ? 'text-white' : 'text-slate-900'}`}>{value}</p>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Received */}
-          <div className={`p-4 rounded-2xl border ${dark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-sm'}`}>
-            <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${dark ? 'text-slate-500' : 'text-slate-400'}`}>Received</p>
-            <p className={`text-sm font-semibold ${dark ? 'text-white' : 'text-slate-900'}`}>{new Date(enq.created_at).toLocaleString('en-IN')}</p>
+          <div className={card}>
+            <div className="flex items-center gap-2 mb-2">
+              <Calendar size={13} className="text-orange-500" />
+              <p className={`text-xs font-bold uppercase tracking-widest ${dark ? 'text-slate-500' : 'text-slate-400'}`}>Received</p>
+            </div>
+            <p className={`text-sm font-semibold ${dark ? 'text-white' : 'text-slate-900'}`}>
+              {new Date(enq.created_at).toLocaleString('en-IN', { dateStyle: 'full', timeStyle: 'short' })}
+            </p>
           </div>
         </div>
 
-        {/* Right — Message + Status */}
+        {/* Right */}
         <div className="lg:col-span-2 space-y-4">
           {/* Message */}
-          <div className={`p-6 rounded-2xl border ${dark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-sm'}`}>
-            <h2 className={`text-sm font-bold uppercase tracking-wider mb-4 ${dark ? 'text-slate-400' : 'text-slate-500'}`}>Message</h2>
-            <p className={`text-sm leading-relaxed ${dark ? 'text-slate-300' : 'text-slate-700'}`}>{enq.message}</p>
+          <div className={card}>
+            <div className="flex items-center gap-2 mb-4">
+              <MessageSquare size={14} className="text-orange-500" />
+              <h2 className={`text-xs font-bold uppercase tracking-widest ${dark ? 'text-slate-500' : 'text-slate-400'}`}>Message</h2>
+            </div>
+            <div className={`p-4 rounded-xl ${dark ? 'bg-slate-800' : 'bg-slate-50'}`}>
+              <p className={`text-sm leading-relaxed whitespace-pre-wrap ${dark ? 'text-slate-300' : 'text-slate-700'}`}>{enq.message}</p>
+            </div>
           </div>
 
-          {/* Status */}
-          <div className={`p-6 rounded-2xl border ${dark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-sm'}`}>
-            <h2 className={`text-sm font-bold uppercase tracking-wider mb-4 ${dark ? 'text-slate-400' : 'text-slate-500'}`}>Update Status</h2>
-            <div className="flex flex-wrap gap-2">
-              {(['new', 'read', 'replied', 'archived'] as Enquiry['status'][]).map(s => (
-                <button
-                  key={s}
-                  onClick={() => updateStatus(s)}
-                  className={`px-4 py-2 rounded-xl text-sm font-bold border transition-all ${
-                    enq.status === s ? statusColors[s] : dark ? 'border-slate-700 text-slate-400 hover:border-slate-600' : 'border-slate-200 text-slate-500 hover:border-slate-300'
-                  }`}
+          {/* Quick actions */}
+          <div className={card}>
+            <h2 className={`text-xs font-bold uppercase tracking-widest mb-4 ${dark ? 'text-slate-500' : 'text-slate-400'}`}>Quick Actions</h2>
+            <div className="grid grid-cols-2 gap-2">
+              <a
+                href={`mailto:${enq.email}`}
+                className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border border-blue-500/20 transition-colors"
+              >
+                <Mail size={14} /> Reply via Email
+              </a>
+              {enq.phone && (
+                <a
+                  href={`tel:${enq.phone}`}
+                  className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold bg-green-500/10 text-green-400 hover:bg-green-500/20 border border-green-500/20 transition-colors"
                 >
-                  {s.charAt(0).toUpperCase() + s.slice(1)}
-                </button>
-              ))}
+                  <Phone size={14} /> Call
+                </a>
+              )}
+            </div>
+          </div>
+
+          {/* Status update */}
+          <div className={card}>
+            <h2 className={`text-xs font-bold uppercase tracking-widest mb-4 ${dark ? 'text-slate-500' : 'text-slate-400'}`}>Update Status</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {(['new', 'read', 'replied', 'archived'] as Enquiry['status'][]).map(s => {
+                const cfg = STATUS_CFG[s];
+                const isActive = enq.status === s;
+                const isLoading = updatingStatus === s;
+                return (
+                  <button
+                    key={s}
+                    onClick={() => updateStatus(s)}
+                    disabled={isActive || isLoading}
+                    className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold border transition-all ${
+                      isActive
+                        ? cfg.color
+                        : dark
+                          ? 'border-slate-700 text-slate-400 hover:border-slate-600 hover:text-white'
+                          : 'border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-900'
+                    } ${isActive ? 'cursor-default' : ''}`}
+                  >
+                    {isLoading ? (
+                      <div className="w-3.5 h-3.5 border-2 border-current/30 border-t-current rounded-full animate-spin" />
+                    ) : (
+                      <span className={`w-1.5 h-1.5 rounded-full ${isActive ? cfg.dot : dark ? 'bg-slate-600' : 'bg-slate-300'}`} />
+                    )}
+                    {s.charAt(0).toUpperCase() + s.slice(1)}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -152,7 +227,7 @@ function EnquiryDetail() {
         open={deleteModal}
         title="Delete Enquiry"
         message="Are you sure you want to delete this enquiry? This action cannot be undone."
-        itemName={enq ? `Enquiry #${enq.id} from ${enq.name}` : undefined}
+        itemName={`Enquiry #${enq.id} from ${enq.name}`}
         onConfirm={confirmDelete}
         onCancel={() => setDeleteModal(false)}
         loading={deleting}
@@ -198,90 +273,123 @@ function EnquiriesList() {
     try {
       const res = await fetch(`${API_BASE}/enquiries/${deleteModal.id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
       setDeleteModal({ open: false, id: null, name: '' });
-      if (res.ok) {
-        load();
-        setToast({ message: 'Enquiry deleted successfully', type: 'success' });
-      } else {
-        setToast({ message: 'Failed to delete enquiry', type: 'error' });
-      }
+      if (res.ok) { load(); setToast({ message: 'Enquiry deleted', type: 'success' }); }
+      else { setToast({ message: 'Failed to delete', type: 'error' }); }
     } catch {
-      setToast({ message: 'Error deleting enquiry', type: 'error' });
+      setToast({ message: 'Error deleting', type: 'error' });
     } finally {
       setDeleting(false);
     }
   };
 
+  const filters = [
+    { value: '', label: 'All', count: total },
+    { value: 'new', label: 'New' },
+    { value: 'read', label: 'Read' },
+    { value: 'replied', label: 'Replied' },
+    { value: 'archived', label: 'Archived' },
+  ];
+
   return (
-    <div className="space-y-5">
-      <div className="flex items-center justify-between">
+    <div className="space-y-5 max-w-7xl">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className={`text-2xl font-black ${dark ? 'text-white' : 'text-slate-900'}`}>Enquiries</h1>
-          <p className={`text-sm mt-0.5 ${dark ? 'text-slate-500' : 'text-slate-500'}`}>{total} total</p>
+          <p className={`text-sm mt-0.5 ${dark ? 'text-slate-500' : 'text-slate-500'}`}>{total} total enquiries</p>
         </div>
-        <button onClick={load} className={`p-2 rounded-xl border ${dark ? 'border-slate-800 text-slate-400 hover:text-white' : 'border-slate-200 text-slate-500 hover:text-slate-900'}`}>
-          <RefreshCw size={16} />
+        <button
+          onClick={load}
+          className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-sm font-semibold transition-colors ${dark ? 'border-slate-700 text-slate-400 hover:text-white hover:bg-slate-800' : 'border-slate-200 text-slate-500 hover:text-slate-900 hover:bg-slate-50'}`}
+        >
+          <RefreshCw size={14} /> Refresh
         </button>
       </div>
 
-      <div className="flex gap-2 flex-wrap">
-        {(['', 'new', 'read', 'replied', 'archived'] as const).map(s => (
+      {/* Filter tabs */}
+      <div className={`flex items-center gap-1 p-1 rounded-xl w-fit ${dark ? 'bg-slate-800' : 'bg-slate-100'}`}>
+        <Filter size={13} className={`ml-2 mr-1 ${dark ? 'text-slate-500' : 'text-slate-400'}`} />
+        {filters.map(({ value, label }) => (
           <button
-            key={s}
-            onClick={() => setFilter(s)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${
-              filter === s
-                ? 'bg-orange-500 text-white border-orange-500'
-                : dark ? 'border-slate-700 text-slate-400 hover:border-slate-600' : 'border-slate-200 text-slate-500'
+            key={value}
+            onClick={() => setFilter(value)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              filter === value
+                ? 'bg-orange-500 text-white shadow-md shadow-orange-500/25'
+                : dark ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'
             }`}
           >
-            {s ? s.charAt(0).toUpperCase() + s.slice(1) : 'All'}
+            {label}
           </button>
         ))}
       </div>
 
-      <div className={`rounded-2xl border overflow-hidden ${dark ? 'border-slate-800' : 'border-slate-200'}`}>
+      {/* Table */}
+      <div className={`rounded-2xl border overflow-hidden ${dark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
         {loading ? (
-          <div className={`p-8 text-center text-sm ${dark ? 'text-slate-500' : 'text-slate-400'}`}>Loading…</div>
+          <div className="flex items-center justify-center py-16">
+            <div className="w-6 h-6 border-2 border-orange-500/30 border-t-orange-500 rounded-full animate-spin" />
+          </div>
         ) : enquiries.length === 0 ? (
-          <div className={`p-8 text-center text-sm ${dark ? 'text-slate-500' : 'text-slate-400'}`}>No enquiries found.</div>
+          <div className="flex flex-col items-center justify-center py-16">
+            <MessageSquare size={32} className={dark ? 'text-slate-700' : 'text-slate-300'} />
+            <p className={`text-sm mt-3 font-semibold ${dark ? 'text-slate-500' : 'text-slate-400'}`}>No enquiries found</p>
+          </div>
         ) : (
           <div className="overflow-x-auto">
-          <table className="w-full min-w-[600px]">
-            <thead>
-              <tr className={`border-b text-xs font-bold uppercase tracking-wider ${dark ? 'bg-slate-900 border-slate-800 text-slate-500' : 'bg-slate-50 border-slate-200 text-slate-400'}`}>
-                <th className="text-left px-4 py-3">#</th>
-                <th className="text-left px-4 py-3">Name</th>
-                <th className="text-left px-4 py-3 hidden md:table-cell">Company</th>
-                <th className="text-left px-4 py-3 hidden lg:table-cell">Email</th>
-                <th className="text-left px-4 py-3">Status</th>
-                <th className="text-left px-4 py-3 hidden sm:table-cell">Date</th>
-                <th className="px-4 py-3"></th>
-              </tr>
-            </thead>
-            <tbody className={`divide-y ${dark ? 'divide-slate-800' : 'divide-slate-100'}`}>
-              {enquiries.map(enq => (
-                <tr key={enq.id} className={`transition-colors ${dark ? 'bg-slate-900 hover:bg-slate-800' : 'bg-white hover:bg-slate-50'}`}>
-                  <td className={`px-4 py-3 text-xs ${dark ? 'text-slate-500' : 'text-slate-400'}`}>{enq.id}</td>
-                  <td className={`px-4 py-3 text-sm font-semibold ${dark ? 'text-white' : 'text-slate-900'}`}>{enq.name}</td>
-                  <td className={`px-4 py-3 text-sm hidden md:table-cell ${dark ? 'text-slate-400' : 'text-slate-600'}`}>{enq.company}</td>
-                  <td className={`px-4 py-3 text-sm hidden lg:table-cell ${dark ? 'text-slate-400' : 'text-slate-600'}`}>{enq.email}</td>
-                  <td className="px-4 py-3">
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${statusColors[enq.status]}`}>{enq.status}</span>
-                  </td>
-                  <td className={`px-4 py-3 text-xs hidden sm:table-cell ${dark ? 'text-slate-500' : 'text-slate-400'}`}>
-                    {new Date(enq.created_at).toLocaleDateString('en-IN')}
-                  </td>
-                  <td className="px-4 py-3 flex items-center gap-2">
-                    <Link to={`/admin/enquiries/${enq.id}`} className="text-orange-500 text-xs font-semibold hover:text-orange-400">View</Link>
-                    <button onClick={() => setDeleteModal({ open: true, id: enq.id, name: enq.name })} className={`flex items-center gap-1.5 px-3 py-1 border text-xs font-semibold rounded-lg transition-colors ${dark ? 'bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500/20' : 'bg-red-50 border-red-200 text-red-600 hover:bg-red-100'}`}>
-                      <Trash2 size={13} />
-                      Delete
-                    </button>
-                  </td>
+            <table className="w-full min-w-[640px]">
+              <thead>
+                <tr className={`border-b text-[11px] font-bold uppercase tracking-widest ${dark ? 'border-slate-800 text-slate-500' : 'border-slate-100 text-slate-400'}`}>
+                  <th className="text-left px-5 py-3.5">Contact</th>
+                  <th className="text-left px-5 py-3.5 hidden md:table-cell">Company</th>
+                  <th className="text-left px-5 py-3.5 hidden lg:table-cell">Email</th>
+                  <th className="text-left px-5 py-3.5">Status</th>
+                  <th className="text-left px-5 py-3.5 hidden sm:table-cell">Date</th>
+                  <th className="px-5 py-3.5 w-28"></th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className={`divide-y ${dark ? 'divide-slate-800' : 'divide-slate-50'}`}>
+                {enquiries.map(enq => (
+                  <tr key={enq.id} className={`transition-colors ${dark ? 'hover:bg-slate-800/60' : 'hover:bg-slate-50'}`}>
+                    <td className="px-5 py-3.5">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shrink-0 text-white text-xs font-black">
+                          {enq.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <p className={`text-sm font-semibold ${dark ? 'text-white' : 'text-slate-900'}`}>{enq.name}</p>
+                          <p className={`text-xs ${dark ? 'text-slate-500' : 'text-slate-400'}`}>#{enq.id}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className={`px-5 py-3.5 text-sm hidden md:table-cell ${dark ? 'text-slate-400' : 'text-slate-600'}`}>{enq.company}</td>
+                    <td className={`px-5 py-3.5 text-sm hidden lg:table-cell ${dark ? 'text-slate-400' : 'text-slate-600'}`}>{enq.email}</td>
+                    <td className="px-5 py-3.5">
+                      <StatusBadge status={enq.status} />
+                    </td>
+                    <td className={`px-5 py-3.5 text-xs hidden sm:table-cell ${dark ? 'text-slate-500' : 'text-slate-400'}`}>
+                      {new Date(enq.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <div className="flex items-center gap-2">
+                        <Link
+                          to={`/admin/enquiries/${enq.id}`}
+                          className="px-3 py-1.5 rounded-lg text-xs font-bold bg-orange-500/10 text-orange-400 hover:bg-orange-500/20 border border-orange-500/20 transition-colors"
+                        >
+                          View
+                        </Link>
+                        <button
+                          onClick={() => setDeleteModal({ open: true, id: enq.id, name: enq.name })}
+                          className={`p-1.5 rounded-lg transition-colors ${dark ? 'text-slate-600 hover:text-red-400 hover:bg-red-500/10' : 'text-slate-300 hover:text-red-500 hover:bg-red-50'}`}
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </div>
@@ -289,7 +397,7 @@ function EnquiriesList() {
       <DeleteModal
         open={deleteModal.open}
         title="Delete Enquiry"
-        message="Are you sure you want to delete this enquiry? This action cannot be undone."
+        message="This action cannot be undone."
         itemName={deleteModal.name}
         onConfirm={confirmDelete}
         onCancel={() => setDeleteModal({ open: false, id: null, name: '' })}
