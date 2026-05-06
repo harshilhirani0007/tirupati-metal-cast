@@ -16,15 +16,6 @@ export default defineConfig({
     sourcemap: false,
     minify: 'esbuild',
     emptyOutDir: true,
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          react: ['react', 'react-dom', 'react-router-dom'],
-          motion: ['framer-motion'],
-          icons: ['lucide-react'],
-        },
-      },
-    },
   },
   server: {
     port: 5173,
