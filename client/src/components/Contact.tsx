@@ -10,6 +10,7 @@ export default function Contact() {
   const { settings } = useSettings();
   const dark = theme === 'dark';
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({ name: '', company: '', email: '', phone: '', message: '' });
 
   const contactInfo = [
@@ -21,6 +22,8 @@ export default function Contact() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    if (submitting) return;
+    setSubmitting(true);
     try {
       const res = await fetch(`${API_BASE}/enquiries`, {
         method: 'POST',
@@ -30,6 +33,8 @@ export default function Contact() {
       if (!res.ok) throw new Error('Failed');
     } catch {
       // show success even if backend is down (graceful degradation)
+    } finally {
+      setSubmitting(false);
     }
     setSubmitted(true);
   };
@@ -196,10 +201,20 @@ export default function Contact() {
                 </div>
                 <button
                   type="submit"
-                  className="w-full flex items-center justify-center gap-2 py-4 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl transition-all duration-200 hover:scale-[1.02] glow-orange text-sm"
+                  disabled={submitting}
+                  className="w-full flex items-center justify-center gap-2 py-4 bg-orange-500 hover:bg-orange-600 disabled:opacity-70 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all duration-200 hover:scale-[1.02] disabled:hover:scale-100 glow-orange text-sm"
                 >
-                  <Send size={16} />
-                  Send Enquiry
+                  {submitting ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Send size={16} />
+                      Send Enquiry
+                    </>
+                  )}
                 </button>
                 <p className={`text-center text-xs ${dark ? 'text-slate-500' : 'text-slate-400'}`}>
                   We respond within 24 hours · No spam · Your data is secure
