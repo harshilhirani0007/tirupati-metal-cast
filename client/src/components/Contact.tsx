@@ -159,12 +159,11 @@ export default function Contact() {
                 </button>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-5">
+              <form onSubmit={handleSubmit} className="space-y-5" noValidate>
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
                     <label className={`block text-xs font-semibold mb-1.5 ${dark ? 'text-slate-400' : 'text-slate-600'}`}>Your Name *</label>
                     <input
-                      required
                       type="text"
                       placeholder="Rajesh Kumar"
                       className={inputClass}
@@ -175,7 +174,6 @@ export default function Contact() {
                   <div>
                     <label className={`block text-xs font-semibold mb-1.5 ${dark ? 'text-slate-400' : 'text-slate-600'}`}>Company Name *</label>
                     <input
-                      required
                       type="text"
                       placeholder="Your Company Ltd."
                       className={inputClass}
@@ -188,8 +186,7 @@ export default function Contact() {
                   <div>
                     <label className={`block text-xs font-semibold mb-1.5 ${dark ? 'text-slate-400' : 'text-slate-600'}`}>Email Address *</label>
                     <input
-                      required
-                      type="email"
+                      type="text"
                       placeholder="you@company.com"
                       className={`${inputClass} ${emailError ? 'border-red-400 focus:border-red-400 focus:ring-red-500/20' : ''}`}
                       value={form.email}
@@ -217,7 +214,6 @@ export default function Contact() {
                 <div>
                   <label className={`block text-xs font-semibold mb-1.5 ${dark ? 'text-slate-400' : 'text-slate-600'}`}>Casting Requirements *</label>
                   <textarea
-                    required
                     rows={5}
                     placeholder="Describe your requirements — material grade, quantity, dimensions, tolerances, end application, etc."
                     className={`${inputClass} resize-none`}
