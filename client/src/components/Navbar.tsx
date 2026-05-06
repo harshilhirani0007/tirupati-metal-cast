@@ -50,7 +50,7 @@ export default function Navbar() {
             </div>
             <div className="flex flex-col leading-none">
               <span className={`font-black text-base tracking-tight ${dark ? 'text-white' : 'text-slate-900'}`}>
-                SHREE TIRUPATI
+                SHRI TIRUPATI
               </span>
               <span className="text-orange-500 text-[10px] font-semibold tracking-[0.2em] uppercase">
                 Metal Cast
