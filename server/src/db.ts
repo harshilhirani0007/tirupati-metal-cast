@@ -51,8 +51,10 @@ async function init(): Promise<void> {
       color TEXT DEFAULT 'from-slate-700 to-slate-800',
       active INTEGER DEFAULT 1,
       sort_order INTEGER DEFAULT 0,
+      image_url TEXT DEFAULT '',
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS image_url TEXT DEFAULT '';
 
     CREATE TABLE IF NOT EXISTS testimonials (
       id SERIAL PRIMARY KEY,

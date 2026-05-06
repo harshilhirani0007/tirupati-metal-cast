@@ -1,57 +1,9 @@
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
-
-const products = [
-  {
-    category: 'Grey Iron Castings',
-    description: 'Versatile, cost-effective castings with excellent damping and machinability for general industrial use.',
-    applications: ['Engine blocks', 'Brake drums', 'Pump housings', 'Machine beds'],
-    color: 'from-slate-700 to-slate-800',
-    accent: '#94a3b8',
-    grade: 'IS 210 / ASTM A48',
-  },
-  {
-    category: 'Ductile Iron Castings',
-    description: 'High-strength, ductile iron components offering superior impact resistance and mechanical properties.',
-    applications: ['Crankshafts', 'Gearboxes', 'Valve bodies', 'Agricultural parts'],
-    color: 'from-orange-900 to-orange-800',
-    accent: '#f97316',
-    grade: 'IS 1865 / ASTM A536',
-  },
-  {
-    category: 'Alloy Steel Castings',
-    description: 'Premium alloy steel components engineered for extreme conditions and high-stress environments.',
-    applications: ['Mining equipment', 'Railway parts', 'Heavy machinery', 'Pressure vessels'],
-    color: 'from-blue-900 to-blue-800',
-    accent: '#60a5fa',
-    grade: 'IS 1030 / ASTM A148',
-  },
-  {
-    category: 'SG Iron Castings',
-    description: 'Spheroidal graphite iron for applications demanding both strength and ductility.',
-    applications: ['Hydraulic cylinders', 'Wind turbine parts', 'Auto components', 'Pipes & fittings'],
-    color: 'from-emerald-900 to-emerald-800',
-    accent: '#34d399',
-    grade: 'EN-GJS / ASTM A395',
-  },
-  {
-    category: 'Stainless Steel Castings',
-    description: 'Corrosion-resistant precision castings for food, chemical, and marine industries.',
-    applications: ['Food processing', 'Chemical pumps', 'Marine fittings', 'Pharmaceutical'],
-    color: 'from-violet-900 to-violet-800',
-    accent: '#a78bfa',
-    grade: 'CF8 / CF8M / CD4MCu',
-  },
-  {
-    category: 'Machined Castings',
-    description: 'Fully machined, ready-to-fit castings with tight tolerances to eliminate your in-house machining.',
-    applications: ['Engine components', 'Bearing housings', 'Flanges', 'Brackets'],
-    color: 'from-rose-900 to-rose-800',
-    accent: '#fb7185',
-    grade: 'Custom Tolerance',
-  },
-];
+import { API_BASE } from '../context/AuthContext';
+import { Product } from '../types';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 40 },
@@ -61,6 +13,14 @@ const fadeUp = {
 export default function Products() {
   const { theme } = useTheme();
   const dark = theme === 'dark';
+  const [products, setProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    fetch(`${API_BASE}/products`)
+      .then(r => r.json() as Promise<Product[]>)
+      .then(setProducts)
+      .catch(() => {});
+  }, []);
 
   return (
     <section id="products" className={`py-20 lg:py-28 ${dark ? 'bg-slate-950' : 'bg-slate-50'}`}>
@@ -84,28 +44,51 @@ export default function Products() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {products.map((product, i) => (
             <motion.div
-              key={product.category}
+              key={product.id}
               initial="hidden" whileInView="visible" viewport={{ once: true }} custom={i} variants={fadeUp}
               className={`group rounded-2xl overflow-hidden border card-hover ${
                 dark ? 'border-slate-800 bg-slate-900' : 'border-slate-200 bg-white shadow-sm hover:shadow-xl'
               }`}
             >
-              {/* Card header */}
-              <div className={`bg-gradient-to-br ${product.color} p-6 relative overflow-hidden`}>
-                <div className="absolute -right-6 -top-6 w-24 h-24 rounded-full opacity-20" style={{ background: product.accent }} />
-                <span className="text-xs font-bold tracking-widest uppercase text-white/60">Grade: {product.grade}</span>
-                <h3 className="text-white font-black text-xl mt-2">{product.category}</h3>
+              {/* Card header — image or gradient */}
+              <div className={`relative h-44 bg-gradient-to-br ${product.color} overflow-hidden`}>
+                {product.image_url ? (
+                  <img
+                    src={product.image_url}
+                    alt={product.category}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                ) : (
+                  <>
+                    <div className="absolute -right-6 -top-6 w-24 h-24 rounded-full opacity-20 bg-white" />
+                    <div className="absolute inset-0 flex items-end p-6">
+                      <div>
+                        <span className="text-xs font-bold tracking-widest uppercase text-white/60 block mb-1">Grade: {product.grade}</span>
+                        <h3 className="text-white font-black text-xl">{product.category}</h3>
+                      </div>
+                    </div>
+                  </>
+                )}
+                {product.image_url && (
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-5">
+                    <div>
+                      <span className="text-xs font-bold tracking-widest uppercase text-white/60 block mb-1">Grade: {product.grade}</span>
+                      <h3 className="text-white font-black text-lg leading-tight">{product.category}</h3>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Card body */}
               <div className="p-6">
+                {!product.image_url && (
+                  <p className={`text-xs font-bold uppercase tracking-widest mb-2 ${dark ? 'text-slate-500' : 'text-slate-400'}`}>Grade: {product.grade}</p>
+                )}
                 <p className={`text-sm leading-relaxed mb-5 ${dark ? 'text-slate-400' : 'text-slate-600'}`}>
                   {product.description}
                 </p>
                 <div>
-                  <p className={`text-xs font-bold uppercase tracking-wider mb-3 ${dark ? 'text-slate-500' : 'text-slate-400'}`}>
-                    Applications
-                  </p>
+                  <p className={`text-xs font-bold uppercase tracking-wider mb-3 ${dark ? 'text-slate-500' : 'text-slate-400'}`}>Applications</p>
                   <div className="flex flex-wrap gap-2">
                     {product.applications.map(app => (
                       <span

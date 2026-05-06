@@ -26,6 +26,7 @@ export interface Product {
   color: string;
   active: number;
   sort_order: number;
+  image_url: string;
   created_at: string;
 }
 

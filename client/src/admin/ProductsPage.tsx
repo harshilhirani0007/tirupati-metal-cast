@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight, X, Save, Package } from 'lucide-react';
+import { useEffect, useState, useRef } from 'react';
+import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight, X, Save, Package, ImagePlus, Image } from 'lucide-react';
 import { useAuth, API_BASE } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { Product } from '../types';
@@ -14,6 +14,7 @@ interface ProductForm {
   color: string;
   active: number;
   sort_order: number;
+  image_url: string;
 }
 
 const colorOptions = [
@@ -25,7 +26,7 @@ const colorOptions = [
   { label: 'Rose',    value: 'from-rose-900 to-rose-800' },
 ];
 
-const emptyForm: ProductForm = { category: '', description: '', grade: '', applications: '', color: 'from-slate-700 to-slate-800', active: 1, sort_order: 0 };
+const emptyForm: ProductForm = { category: '', description: '', grade: '', applications: '', color: 'from-slate-700 to-slate-800', active: 1, sort_order: 0, image_url: '' };
 
 export default function ProductsPage() {
   const { token } = useAuth();
@@ -38,6 +39,8 @@ export default function ProductsPage() {
   const [deleteModal, setDeleteModal] = useState<{ open: boolean; id: number | null }>({ open: false, id: null });
   const [deleting, setDeleting] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const load = () =>
     fetch(`${API_BASE}/products/all`, { headers: { Authorization: `Bearer ${token}` } })
@@ -47,8 +50,31 @@ export default function ProductsPage() {
 
   const openNew = () => { setForm(emptyForm); setModal({ open: true, editing: null }); };
   const openEdit = (p: Product) => {
-    setForm({ ...p, applications: p.applications.join(', ') });
+    setForm({ ...p, applications: p.applications.join(', '), image_url: p.image_url ?? '' });
     setModal({ open: true, editing: p });
+  };
+
+  const handleImageUpload = async (file: File) => {
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append('image', file);
+      const res = await fetch(`${API_BASE}/products/upload`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: fd,
+      });
+      const data = await res.json() as { url?: string; error?: string };
+      if (res.ok && data.url) {
+        setForm(f => ({ ...f, image_url: data.url! }));
+      } else {
+        setToast({ message: data.error ?? 'Upload failed', type: 'error' });
+      }
+    } catch {
+      setToast({ message: 'Error uploading image', type: 'error' });
+    } finally {
+      setUploading(false);
+    }
   };
 
   const save = async () => {
@@ -119,7 +145,7 @@ export default function ProductsPage() {
         </button>
       </div>
 
-      {/* Product grid cards */}
+      {/* Cards */}
       {products.length === 0 ? (
         <div className={`flex flex-col items-center justify-center py-20 rounded-2xl border ${dark ? 'border-slate-800 bg-slate-900' : 'border-slate-200 bg-white'}`}>
           <Package size={36} className={dark ? 'text-slate-700' : 'text-slate-300'} />
@@ -133,20 +159,25 @@ export default function ProductsPage() {
           {products.map(p => (
             <div
               key={p.id}
-              className={`group relative p-5 rounded-2xl border transition-all hover:-translate-y-0.5 ${dark ? 'bg-slate-900 border-slate-800 hover:border-slate-700' : 'bg-white border-slate-200 hover:border-slate-300 hover:shadow-md'}`}
+              className={`group relative flex flex-col rounded-2xl border overflow-hidden transition-all hover:-translate-y-0.5 ${dark ? 'bg-slate-900 border-slate-800 hover:border-slate-700' : 'bg-white border-slate-200 hover:border-slate-300 hover:shadow-md'}`}
             >
-              {/* Top */}
-              <div className="flex items-start justify-between mb-3">
-                <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${p.color} flex items-center justify-center shrink-0`}>
-                  <Package size={16} className="text-white/80" />
-                </div>
-                <div className="flex items-center gap-1.5">
+              {/* Image or gradient header */}
+              <div className={`relative h-36 bg-gradient-to-br ${p.color} overflow-hidden`}>
+                {p.image_url ? (
+                  <img src={p.image_url} alt={p.category} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <Image size={32} className="text-white/20" />
+                  </div>
+                )}
+                {/* Active badge */}
+                <div className="absolute top-3 right-3">
                   <button
                     onClick={() => toggleActive(p)}
-                    className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-bold border transition-colors ${
+                    className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-bold border backdrop-blur-sm transition-colors ${
                       p.active
-                        ? 'bg-green-500/10 text-green-400 border-green-500/20'
-                        : dark ? 'bg-slate-800 text-slate-500 border-slate-700' : 'bg-slate-100 text-slate-400 border-slate-200'
+                        ? 'bg-green-500/20 text-green-300 border-green-500/30'
+                        : 'bg-black/30 text-white/60 border-white/20'
                     }`}
                   >
                     {p.active ? <ToggleRight size={12} /> : <ToggleLeft size={12} />}
@@ -155,28 +186,29 @@ export default function ProductsPage() {
                 </div>
               </div>
 
-              <h3 className={`font-black text-sm mb-1 ${dark ? 'text-white' : 'text-slate-900'}`}>{p.category}</h3>
-              <p className={`text-xs mb-2 ${dark ? 'text-slate-500' : 'text-slate-400'}`}>{p.grade}</p>
-              <p className={`text-xs leading-relaxed line-clamp-2 mb-3 ${dark ? 'text-slate-400' : 'text-slate-600'}`}>{p.description}</p>
-
-              {/* Applications */}
-              {p.applications.length > 0 && (
-                <div className="flex flex-wrap gap-1 mb-4">
-                  {p.applications.slice(0, 3).map(app => (
-                    <span key={app} className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${dark ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-500'}`}>
-                      {app}
-                    </span>
-                  ))}
-                  {p.applications.length > 3 && (
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${dark ? 'bg-slate-800 text-slate-500' : 'bg-slate-100 text-slate-400'}`}>
-                      +{p.applications.length - 3} more
-                    </span>
-                  )}
-                </div>
-              )}
+              {/* Content */}
+              <div className="flex-1 p-4">
+                <h3 className={`font-black text-sm mb-1 ${dark ? 'text-white' : 'text-slate-900'}`}>{p.category}</h3>
+                <p className={`text-xs mb-2 ${dark ? 'text-slate-500' : 'text-slate-400'}`}>{p.grade}</p>
+                <p className={`text-xs leading-relaxed line-clamp-2 mb-3 ${dark ? 'text-slate-400' : 'text-slate-600'}`}>{p.description}</p>
+                {p.applications.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {p.applications.slice(0, 3).map(app => (
+                      <span key={app} className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${dark ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-500'}`}>
+                        {app}
+                      </span>
+                    ))}
+                    {p.applications.length > 3 && (
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${dark ? 'bg-slate-800 text-slate-500' : 'bg-slate-100 text-slate-400'}`}>
+                        +{p.applications.length - 3}
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
 
               {/* Actions */}
-              <div className={`flex items-center gap-2 pt-3 border-t ${dark ? 'border-slate-800' : 'border-slate-100'}`}>
+              <div className={`flex items-center gap-2 px-4 py-3 border-t ${dark ? 'border-slate-800' : 'border-slate-100'}`}>
                 <button
                   onClick={() => openEdit(p)}
                   className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold border transition-colors ${dark ? 'border-slate-700 text-slate-400 hover:text-white hover:bg-slate-800' : 'border-slate-200 text-slate-500 hover:text-slate-900 hover:bg-slate-50'}`}
@@ -195,24 +227,75 @@ export default function ProductsPage() {
         </div>
       )}
 
-      {/* Modal */}
+      {/* Add/Edit Modal */}
       {modal.open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-          <div className={`w-full max-w-lg rounded-3xl border shadow-2xl ${dark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
-            <div className={`flex items-center justify-between px-6 py-5 border-b ${dark ? 'border-slate-800' : 'border-slate-100'}`}>
+          <div className={`w-full max-w-lg rounded-3xl border shadow-2xl flex flex-col max-h-[90vh] ${dark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+            <div className={`flex items-center justify-between px-6 py-5 border-b shrink-0 ${dark ? 'border-slate-800' : 'border-slate-100'}`}>
               <div>
                 <h2 className={`font-black text-lg ${dark ? 'text-white' : 'text-slate-900'}`}>
                   {modal.editing ? 'Edit Product' : 'Add Product'}
                 </h2>
                 <p className={`text-xs mt-0.5 ${dark ? 'text-slate-500' : 'text-slate-400'}`}>
-                  {modal.editing ? 'Update product details' : 'Fill in the product information below'}
+                  {modal.editing ? 'Update product details and photo' : 'Fill in product info and upload a photo'}
                 </p>
               </div>
               <button onClick={() => setModal({ open: false, editing: null })} className={`p-2 rounded-xl transition-colors ${dark ? 'text-slate-400 hover:text-white hover:bg-slate-800' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100'}`}>
                 <X size={16} />
               </button>
             </div>
-            <div className="px-6 py-5 space-y-4 max-h-[55vh] overflow-y-auto">
+
+            <div className="px-6 py-5 space-y-4 overflow-y-auto flex-1">
+              {/* Image upload */}
+              <div>
+                <label className={labelCls}>Product Photo</label>
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={e => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); }}
+                />
+                {form.image_url ? (
+                  <div className="relative rounded-xl overflow-hidden border border-slate-700 h-40">
+                    <img src={form.image_url} alt="Product" className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => fileRef.current?.click()}
+                        className="px-3 py-1.5 bg-white text-slate-900 text-xs font-bold rounded-lg"
+                      >
+                        Change Photo
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setForm(f => ({ ...f, image_url: '' }))}
+                        className="px-3 py-1.5 bg-red-500 text-white text-xs font-bold rounded-lg"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => fileRef.current?.click()}
+                    disabled={uploading}
+                    className={`w-full h-32 rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-colors ${
+                      dark
+                        ? 'border-slate-700 hover:border-orange-500/50 text-slate-500 hover:text-orange-400'
+                        : 'border-slate-300 hover:border-orange-400 text-slate-400 hover:text-orange-500'
+                    }`}
+                  >
+                    {uploading ? (
+                      <><div className="w-5 h-5 border-2 border-orange-500/30 border-t-orange-500 rounded-full animate-spin" /><span className="text-xs">Uploading...</span></>
+                    ) : (
+                      <><ImagePlus size={22} /><span className="text-xs font-semibold">Click to upload photo</span><span className="text-[10px]">JPG, PNG, WebP · Max 5 MB</span></>
+                    )}
+                  </button>
+                )}
+              </div>
+
               <div>
                 <label className={labelCls}>Category *</label>
                 <input className={inputCls} value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} placeholder="e.g. Grey Iron Castings" />
@@ -230,7 +313,7 @@ export default function ProductsPage() {
                 <input className={inputCls} value={form.applications} onChange={e => setForm({ ...form, applications: e.target.value })} placeholder="Engine blocks, Brake drums, Housings" />
               </div>
               <div>
-                <label className={labelCls}>Card Color</label>
+                <label className={labelCls}>Card Color <span className={`font-normal ${dark ? 'text-slate-600' : 'text-slate-400'}`}>(shown when no photo)</span></label>
                 <select className={inputCls} value={form.color} onChange={e => setForm({ ...form, color: e.target.value })}>
                   {colorOptions.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
                 </select>
@@ -249,7 +332,8 @@ export default function ProductsPage() {
                 </div>
               </div>
             </div>
-            <div className={`flex gap-3 px-6 py-4 border-t ${dark ? 'border-slate-800' : 'border-slate-100'}`}>
+
+            <div className={`flex gap-3 px-6 py-4 border-t shrink-0 ${dark ? 'border-slate-800' : 'border-slate-100'}`}>
               <button
                 onClick={() => setModal({ open: false, editing: null })}
                 disabled={saving}
@@ -259,7 +343,7 @@ export default function ProductsPage() {
               </button>
               <button
                 onClick={save}
-                disabled={saving}
+                disabled={saving || uploading}
                 className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-orange-500 hover:bg-orange-600 disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-bold rounded-xl transition-colors"
               >
                 {saving ? (
