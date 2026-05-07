@@ -103,7 +103,7 @@ export default function LoginPage() {
     `${inputBase} ${touched[field] && errors[field as keyof FormErrors] ? inputError : inputNormal}`;
 
   return (
-    <div className={`flex flex-col min-h-screen px-4 py-6 ${dark ? 'bg-slate-950' : 'bg-slate-100'}`}>
+    <div className={`relative flex flex-col min-h-screen px-4 py-6 overflow-x-hidden ${dark ? 'bg-slate-950' : 'bg-slate-100'}`}>
       {/* Background glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-orange-500/10 blur-3xl rounded-full pointer-events-none" />
 
