@@ -133,12 +133,12 @@ export default function Hero() {
             initial={{ opacity: 0, x: 60 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="relative"
+            className="relative mt-10 lg:mt-0"
           >
             {/* Main visual card */}
             <div className={`relative rounded-3xl overflow-hidden border ${dark ? 'border-slate-800 bg-slate-900' : 'border-slate-200 bg-white shadow-2xl'}`}>
               {/* Simulated foundry image with gradient overlay */}
-              <div className="relative h-80 bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900 flex items-center justify-center">
+              <div className="relative h-56 sm:h-80 bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900 flex items-center justify-center">
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                 {/* Decorative metal casting SVG illustration */}
                 <svg viewBox="0 0 300 200" className="w-full h-full opacity-30" xmlns="http://www.w3.org/2000/svg">
@@ -158,11 +158,11 @@ export default function Hero() {
               </div>
 
               {/* Stats row */}
-              <div className={`grid grid-cols-2 sm:grid-cols-4 divide-x ${dark ? 'divide-slate-800' : 'divide-slate-100'}`}>
+              <div className={`grid grid-cols-4 divide-x ${dark ? 'divide-slate-800' : 'divide-slate-100'}`}>
                 {stats.map(({ value, label }) => (
-                  <div key={label} className="p-4 text-center">
-                    <p className="text-orange-500 font-black text-xl">{value}</p>
-                    <p className={`text-xs mt-0.5 ${dark ? 'text-slate-500' : 'text-slate-500'}`}>{label}</p>
+                  <div key={label} className="py-3 px-2 text-center">
+                    <p className="text-orange-500 font-black text-base sm:text-xl">{value}</p>
+                    <p className={`text-[10px] sm:text-xs mt-0.5 leading-tight ${dark ? 'text-slate-500' : 'text-slate-500'}`}>{label}</p>
                   </div>
                 ))}
               </div>
@@ -185,10 +185,10 @@ export default function Hero() {
         onClick={() => document.querySelector('#about')?.scrollIntoView({ behavior: 'smooth' })}
         animate={{ y: [0, 8, 0] }}
         transition={{ repeat: Infinity, duration: 2 }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 text-slate-500 hover:text-orange-500 transition-colors bg-none border-none cursor-pointer"
+        className="absolute bottom-6 left-1/2 -translate-x-1/2 text-slate-400 hover:text-orange-500 transition-colors cursor-pointer"
+        aria-label="Scroll to about section"
       >
-        <span className="text-xs font-medium tracking-wider uppercase">Scroll</span>
-        <ChevronDown size={20} />
+        <ChevronDown size={24} />
       </motion.button>
     </section>
   );
