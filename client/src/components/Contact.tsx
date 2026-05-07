@@ -117,23 +117,28 @@ export default function Contact() {
               </div>
             ))}
 
-            {/* Map placeholder */}
-            {settings.address && (
-              <div className={`rounded-2xl overflow-hidden border h-52 flex items-center justify-center ${dark ? 'bg-slate-800 border-slate-700' : 'bg-slate-100 border-slate-200'}`}>
-                <div className="text-center">
-                  <MapPin size={28} className="text-orange-500 mx-auto mb-2" />
-                  <p className={`text-sm font-medium ${dark ? 'text-slate-400' : 'text-slate-500'}`}>{settings.address}</p>
-                  <a
-                    href={`https://maps.google.com/?q=${encodeURIComponent(settings.address)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-2 inline-block text-orange-500 text-xs font-semibold hover:text-orange-400 transition-colors"
-                  >
-                    Open in Google Maps →
-                  </a>
-                </div>
-              </div>
-            )}
+            {/* Google Map embed */}
+            <div className={`rounded-2xl overflow-hidden border ${dark ? 'border-slate-700' : 'border-slate-200'}`}>
+              <iframe
+                title="Shri Tirupati Metal Cast Location"
+                src={`https://maps.google.com/maps?q=${encodeURIComponent(settings.address || 'Shri Tirupati Metal Cast Gujarat India')}&output=embed`}
+                width="100%"
+                height="220"
+                style={{ border: 0, display: 'block' }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+              <a
+                href={`https://maps.google.com/?q=${encodeURIComponent(settings.address || 'Shri Tirupati Metal Cast Gujarat India')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`flex items-center justify-center gap-2 py-2.5 text-xs font-semibold transition-colors ${dark ? 'bg-slate-800 text-orange-400 hover:text-orange-300' : 'bg-slate-50 text-orange-500 hover:text-orange-600'}`}
+              >
+                <MapPin size={12} />
+                Open in Google Maps
+              </a>
+            </div>
           </motion.div>
 
           {/* Form */}
