@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { ArrowRight, ChevronDown, Shield, Award, Zap } from 'lucide-react';
+import { ArrowRight, Shield, Award, Zap } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 
 const stats = [
@@ -180,16 +180,6 @@ export default function Hero() {
         </div>
       </div>
 
-      {/* Scroll indicator */}
-      <motion.button
-        onClick={() => document.querySelector('#about')?.scrollIntoView({ behavior: 'smooth' })}
-        animate={{ y: [0, 8, 0] }}
-        transition={{ repeat: Infinity, duration: 2 }}
-        className="absolute bottom-6 left-1/2 -translate-x-1/2 text-slate-400 hover:text-orange-500 transition-colors cursor-pointer"
-        aria-label="Scroll to about section"
-      >
-        <ChevronDown size={24} />
-      </motion.button>
     </section>
   );
 }
