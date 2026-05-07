@@ -172,7 +172,7 @@ export default function Hero() {
             <motion.div
               animate={{ y: [0, -8, 0] }}
               transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
-              className="absolute -top-4 -right-4 bg-orange-500 text-white px-4 py-2 rounded-2xl shadow-xl text-sm font-bold glow-orange"
+              className="absolute -top-4 right-4 sm:-right-4 bg-orange-500 text-white px-4 py-2 rounded-2xl shadow-xl text-sm font-bold glow-orange"
             >
               Since 1999
             </motion.div>
