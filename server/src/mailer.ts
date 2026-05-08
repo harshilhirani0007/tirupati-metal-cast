@@ -1,16 +1,6 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
-export function createTransporter() {
-  return nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT ?? 587),
-    secure: process.env.SMTP_SECURE === 'true',
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-  });
-}
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function sendReply({
   to,
@@ -25,9 +15,10 @@ export async function sendReply({
   body: string;
   fromName: string;
 }) {
-  const transporter = createTransporter();
-  const fromEmail = process.env.SMTP_USER;
   const companyName = process.env.COMPANY_NAME ?? 'Shri Tirupati Metal Cast';
+  // Use Resend test sender by default; switch to your verified domain once DNS is set up
+  const fromAddress = process.env.RESEND_FROM ?? 'onboarding@resend.dev';
+  const replyTo = process.env.REPLY_TO_EMAIL;
 
   const html = `
 <!DOCTYPE html>
@@ -37,14 +28,12 @@ export async function sendReply({
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;padding:32px 16px;">
     <tr><td align="center">
       <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e2e8f0;max-width:600px;width:100%;">
-        <!-- Header -->
         <tr>
           <td style="background:#f97316;padding:28px 32px;">
             <p style="margin:0;color:#fff;font-size:20px;font-weight:900;letter-spacing:-0.5px;">${companyName}</p>
             <p style="margin:4px 0 0;color:rgba(255,255,255,0.75);font-size:12px;">Official Reply</p>
           </td>
         </tr>
-        <!-- Body -->
         <tr>
           <td style="padding:32px;">
             <p style="margin:0 0 8px;color:#64748b;font-size:13px;">Dear ${toName},</p>
@@ -53,10 +42,9 @@ export async function sendReply({
             <p style="margin:0;color:#94a3b8;font-size:12px;">${companyName}</p>
           </td>
         </tr>
-        <!-- Footer -->
         <tr>
           <td style="background:#f8fafc;border-top:1px solid #e2e8f0;padding:16px 32px;">
-            <p style="margin:0;color:#94a3b8;font-size:11px;">This email was sent in response to your enquiry. Please do not reply to this message directly — contact us at ${fromEmail}.</p>
+            <p style="margin:0;color:#94a3b8;font-size:11px;">This email was sent in response to your enquiry${replyTo ? ` — please contact us at ${replyTo}` : ''}.</p>
           </td>
         </tr>
       </table>
@@ -65,11 +53,18 @@ export async function sendReply({
 </body>
 </html>`;
 
-  await transporter.sendMail({
-    from: `"${fromName} – ${companyName}" <${fromEmail}>`,
-    to: `"${toName}" <${to}>`,
+  const { data, error } = await resend.emails.send({
+    from: `${fromName} - ${companyName} <${fromAddress}>`,
+    to: [to],
     subject,
     text: body,
     html,
+    ...(replyTo ? { replyTo } : {}),
   });
+
+  if (error) {
+    throw new Error(error.message || 'Failed to send email');
+  }
+
+  return data;
 }
