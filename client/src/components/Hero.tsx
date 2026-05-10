@@ -59,7 +59,11 @@ export default function Hero() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-orange-500/30 bg-orange-500/10 text-orange-500 text-sm font-medium mb-6"
+              className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium mb-6 transition-colors ${
+                dark
+                  ? 'border border-slate-700 bg-slate-900/80 text-orange-300 shadow-sm backdrop-blur-sm ring-1 ring-slate-700/70'
+                  : 'border border-orange-200 bg-white/95 text-orange-600 shadow-sm backdrop-blur-sm'
+              }`}
             >
               <span className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" />
               India's Trusted Metal Casting Partner

@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { CheckCircle2, Factory, Users, Globe } from 'lucide-react';
+import { CheckCircle2, Factory, Users, Globe, Flame, Cog, Hammer } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 
 const highlights = [
@@ -29,7 +29,7 @@ export default function About() {
   return (
     <section
       id="about"
-      className={`py-20 lg:py-28 ${dark ? 'bg-slate-900' : 'bg-white'}`}
+      className={`py-20 lg:py-28 ${dark ? 'bg-slate-950' : 'bg-white'}`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section label */}
@@ -45,6 +45,64 @@ export default function About() {
           <p className={`max-w-2xl text-lg ${dark ? 'text-slate-400' : 'text-slate-600'}`}>
             Shri Tirupati Metal Cast has been a cornerstone of India's casting industry — delivering precision components that power machines, vehicles, and industries worldwide.
           </p>
+        </motion.div>
+
+        <motion.div
+          initial="hidden" whileInView="visible" viewport={{ once: true }} custom={1} variants={fadeUp}
+          className={`mb-14 rounded-[2.5rem] p-8 border ${dark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'}`}
+        >
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-10">
+            <div>
+              <span className="text-orange-500 text-sm font-semibold uppercase tracking-[0.28em]">Group of Companies</span>
+              <h3 className={`mt-3 text-3xl lg:text-4xl font-black tracking-tight ${dark ? 'text-white' : 'text-slate-900'}`}>
+                Built on Trust, Quality & Precision
+              </h3>
+            </div>
+            <p className={`max-w-lg text-sm leading-7 ${dark ? 'text-slate-400' : 'text-slate-600'}`}>
+              Our group combines foundry expertise, technology-driven casting, and engineering services to deliver premium metal solutions.
+            </p>
+          </div>
+          <div className="grid gap-4 md:grid-cols-3">
+            {[
+              {
+                icon: Flame,
+                name: 'TIRUPATI FERRO CAST',
+                label: 'Foundry Specialists',
+              },
+              {
+                icon: Cog,
+                name: 'TIRUPATI TECHNO CAST',
+                label: 'Advanced Casting Tech',
+              },
+              {
+                icon: Hammer,
+                name: 'TIRUPATI ENGINEERING',
+                label: 'Engineering Excellence',
+              },
+            ].map(({ icon: Icon, name, label }) => (
+              <div
+                key={name}
+                className={`rounded-[2rem] p-6 border shadow-lg transition-transform duration-200 hover:-translate-y-1 ${
+                  dark
+                    ? 'bg-slate-950 border-slate-800 shadow-slate-950/40'
+                    : 'bg-white border-slate-200 shadow-slate-900/10'
+                }`}
+              >
+                <div className="flex items-center justify-between gap-4 mb-4">
+                  <div className={`w-12 h-12 rounded-3xl flex items-center justify-center ${dark ? 'bg-orange-500/15 text-orange-400' : 'bg-orange-100 text-orange-500'}`}>
+                    <Icon size={20} />
+                  </div>
+                  <span className={`text-xs uppercase tracking-[0.28em] font-semibold ${dark ? 'text-slate-400' : 'text-slate-500'}`}>
+                    Core Unit
+                  </span>
+                </div>
+                <h4 className={`text-lg font-bold mb-2 ${dark ? 'text-white' : 'text-slate-900'}`}>{name}</h4>
+                <p className={`text-sm leading-relaxed ${dark ? 'text-slate-400' : 'text-slate-600'}`}>
+                  {label}
+                </p>
+              </div>
+            ))}
+          </div>
         </motion.div>
 
         <div className="grid lg:grid-cols-2 gap-14 items-center">
