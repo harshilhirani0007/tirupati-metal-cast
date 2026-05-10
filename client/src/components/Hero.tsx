@@ -13,7 +13,7 @@ const stats = [
 const badges = [
   { icon: Shield, label: 'ISO Certified' },
   { icon: Award, label: 'Premium Quality' },
-  { icon: Zap, label: 'Fast Delivery' },
+  // { icon: Zap, label: 'Fast Delivery' },
 ];
 
 export default function Hero() {
