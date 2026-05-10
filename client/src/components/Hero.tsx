@@ -29,8 +29,16 @@ export default function Hero() {
     >
       {/* Background geometric pattern */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-80"
+          style={{
+            backgroundImage: "url('https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=1600&q=80')",
+          }}
+        />
+        <div className={`absolute inset-0 bg-gradient-to-t ${dark ? 'from-slate-950/90 via-slate-950/70 to-transparent' : 'from-slate-50/95 via-slate-100/70 to-transparent'}`} />
         <div className={`absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full blur-3xl opacity-20 ${dark ? 'bg-orange-500' : 'bg-orange-300'}`} />
         <div className={`absolute -bottom-40 -left-40 w-[500px] h-[500px] rounded-full blur-3xl opacity-10 ${dark ? 'bg-blue-500' : 'bg-blue-200'}`} />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(248,113,66,0.18),_transparent_30%)]" />
         {/* Grid lines */}
         <svg className="absolute inset-0 w-full h-full opacity-[0.03]" xmlns="http://www.w3.org/2000/svg">
           <defs>
@@ -65,7 +73,7 @@ export default function Hero() {
               className={`text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-black leading-tight mb-6 ${dark ? 'text-white' : 'text-slate-900'}`}
             >
               Precision{' '}
-              <span className="gradient-text">Metal Casting</span>
+              <span className="text-orange-500">Metal Casting</span>
               <br />
               Built to Last
             </motion.h1>
@@ -76,7 +84,7 @@ export default function Hero() {
               transition={{ duration: 0.6, delay: 0.2 }}
               className={`text-lg leading-relaxed mb-8 max-w-lg ${dark ? 'text-slate-400' : 'text-slate-600'}`}
             >
-              Shri Tirupati Metal Cast delivers high-quality grey iron, ductile iron, and alloy steel castings for automotive, industrial, and agricultural sectors — engineered with precision, delivered on time.
+              Shri Tirupati Metal Cast delivers high-quality grey iron and ductile iron castings for automotive, industrial, and agricultural sectors — engineered with precision, delivered on time.
             </motion.p>
 
             {/* Badges */}
@@ -137,23 +145,20 @@ export default function Hero() {
           >
             {/* Main visual card */}
             <div className={`relative rounded-3xl overflow-hidden border ${dark ? 'border-slate-800 bg-slate-900' : 'border-slate-200 bg-white shadow-2xl'}`}>
-              {/* Simulated foundry image with gradient overlay */}
-              <div className="relative h-56 sm:h-80 bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900 flex items-center justify-center">
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                {/* Decorative metal casting SVG illustration */}
-                <svg viewBox="0 0 300 200" className="w-full h-full opacity-30" xmlns="http://www.w3.org/2000/svg">
-                  <rect x="50" y="80" width="200" height="80" rx="8" fill="#f97316" opacity="0.6"/>
-                  <rect x="80" y="60" width="60" height="30" rx="4" fill="#fb923c" opacity="0.8"/>
-                  <rect x="160" y="60" width="60" height="30" rx="4" fill="#fb923c" opacity="0.8"/>
-                  <circle cx="110" cy="120" r="20" fill="#fed7aa" opacity="0.5"/>
-                  <circle cx="190" cy="120" r="20" fill="#fed7aa" opacity="0.5"/>
-                  <rect x="30" y="155" width="240" height="10" rx="5" fill="#64748b" opacity="0.8"/>
-                  <path d="M100 80 L110 40 L120 80" fill="#f97316" opacity="0.7"/>
-                  <path d="M180 80 L190 40 L200 80" fill="#f97316" opacity="0.7"/>
-                </svg>
-                <div className="absolute bottom-4 left-4 right-4">
-                  <p className="text-white font-bold text-lg">High-Precision Casting</p>
-                  <p className="text-slate-300 text-sm">Grey Iron · Ductile Iron · Alloy Steel</p>
+              <div
+                className="relative h-56 sm:h-80 overflow-hidden bg-cover bg-center"
+                style={{
+                  backgroundImage: "url('https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1600&q=80')",
+                }}
+              >
+                <div className="absolute inset-0 bg-slate-950/30" />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent" />
+                <div className="absolute left-4 right-4 bottom-4">
+                  <div className="rounded-3xl bg-slate-900/70 border border-white/10 p-4 shadow-2xl backdrop-blur-sm">
+                    <p className="text-xs uppercase tracking-[0.24em] text-orange-300 font-semibold mb-2">Featured Process</p>
+                    <h3 className="text-xl font-bold text-white mb-1">High-Precision Casting</h3>
+                    <p className="text-sm text-slate-300">Grey Iron · Ductile Iron</p>
+                  </div>
                 </div>
               </div>
 

@@ -9,6 +9,7 @@ import Hero from './components/Hero';
 import About from './components/About';
 import Products from './components/Products';
 import Services from './components/Services';
+import Quality from './components/Quality';
 import Process from './components/Process';
 import WhyUs from './components/WhyUs';
 import Testimonials from './components/Testimonials';
@@ -58,6 +59,7 @@ export default function App() {
             <Route element={<PublicLayout><About /></PublicLayout>} path="/about" />
             <Route element={<PublicLayout><Products /></PublicLayout>} path="/products" />
             <Route element={<PublicLayout><Services /></PublicLayout>} path="/services" />
+            <Route element={<PublicLayout><Quality /></PublicLayout>} path="/quality" />
             <Route element={<PublicLayout><Process /></PublicLayout>} path="/process" />
             <Route element={<PublicLayout><WhyUs /></PublicLayout>} path="/why-us" />
             <Route element={<PublicLayout><Testimonials /></PublicLayout>} path="/testimonials" />

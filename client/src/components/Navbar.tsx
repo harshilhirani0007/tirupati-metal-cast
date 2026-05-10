@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Sun, Moon, Cog } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
@@ -9,6 +9,7 @@ const navLinks = [
   { label: 'About', href: '/about' },
   { label: 'Products', href: '/products' },
   { label: 'Services', href: '/services' },
+  { label: 'Quality', href: '/quality' },
   { label: 'Process', href: '/process' },
   { label: 'Why Us', href: '/why-us' },
   { label: 'Testimonials', href: '/testimonials' },
@@ -38,7 +39,9 @@ export default function Navbar() {
           ? dark
             ? 'bg-slate-900/95 backdrop-blur-md border-slate-800 shadow-2xl'
             : 'bg-white/95 backdrop-blur-md border-slate-200 shadow-lg'
-          : 'bg-transparent border-transparent'
+          : dark
+            ? 'bg-slate-900/95 backdrop-blur-md border-slate-800'
+            : 'bg-white/95 backdrop-blur-md border-slate-200'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -61,15 +64,19 @@ export default function Navbar() {
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-1">
             {navLinks.map(link => (
-              <Link
+              <NavLink
                 key={link.href}
                 to={link.href}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:text-orange-500 ${
-                  dark ? 'text-slate-300 hover:bg-slate-800' : 'text-slate-600 hover:bg-slate-100'
-                }`}
+                className={({ isActive }) =>
+                  `px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    dark
+                      ? `text-slate-300 hover:bg-slate-800 ${isActive ? 'text-orange-300' : ''}`
+                      : `text-slate-600 hover:bg-slate-100 ${isActive ? 'bg-orange-500/10 text-orange-500 border border-orange-500/20 shadow-sm' : ''}`
+                  }`
+                }
               >
                 {link.label}
-              </Link>
+              </NavLink>
             ))}
           </nav>
 
@@ -116,18 +123,20 @@ export default function Navbar() {
           >
             <div className="px-4 py-4 flex flex-col gap-1">
               {navLinks.map(link => (
-                <Link
+                <NavLink
                   key={link.href}
                   to={link.href}
                   onClick={() => setMenuOpen(false)}
-                  className={`px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                    dark
-                      ? 'text-slate-300 hover:text-orange-400 hover:bg-slate-800'
-                      : 'text-slate-700 hover:text-orange-500 hover:bg-slate-50'
-                  }`}
+                  className={({ isActive }) =>
+                    `px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                      dark
+                        ? `text-slate-300 hover:text-orange-400 hover:bg-slate-800 ${isActive ? 'text-orange-300' : ''}`
+                        : `text-slate-700 hover:text-orange-500 hover:bg-slate-50 ${isActive ? 'bg-orange-500/10 text-orange-500' : ''}`
+                    }`
+                  }
                 >
                   {link.label}
-                </Link>
+                </NavLink>
               ))}
               <Link
                 to="/contact"
