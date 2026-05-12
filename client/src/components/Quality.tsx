@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ShieldCheck, CheckCircle2, Factory, Star, ArrowRight } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+import { useSettings } from '../hooks/useSettings';
 
 const qualityHighlights = [
   {
@@ -38,6 +39,7 @@ const qualityPillars = [
 
 export default function Quality() {
   const { theme } = useTheme();
+  const { settings } = useSettings();
   const dark = theme === 'dark';
 
   return (
@@ -63,16 +65,16 @@ export default function Quality() {
               transition={{ duration: 0.6, delay: 0.1 }}
               className="text-4xl sm:text-5xl font-black leading-tight tracking-tight mb-6"
             >
-              Quality Assurance Built into Every Casting
+              <span className="gradient-text">Quality</span> Assurance Built into Every Casting
             </motion.h1>
 
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.15 }}
-              className="max-w-2xl text-lg leading-relaxed sm:text-xl sm:leading-9 text-slate-500 dark:text-slate-400 mb-8"
+              className={`max-w-2xl text-lg leading-relaxed sm:text-xl sm:leading-9 mb-8 ${dark ? 'text-slate-400' : 'text-slate-500'}`}
             >
-              At Shri Tirupati Metal Cast, quality is not a final checkpoint — it is the foundation of our entire manufacturing workflow. From incoming material inspection to final dispatch, every stage is governed by strict controls, certified standards, and customer-first transparency.
+              At {settings.company_name || 'Shri Tirupati Metal Cast'}, quality is not a final checkpoint — it is the foundation of our entire manufacturing workflow. From incoming material inspection to final dispatch, every stage is governed by strict controls, certified standards, and customer-first transparency.
             </motion.p>
 
             <motion.div
@@ -94,7 +96,7 @@ export default function Quality() {
                     <Icon size={22} />
                   </div>
                   <h2 className="text-xl font-semibold mb-2">{title}</h2>
-                  <p className="text-sm leading-6 text-slate-500 dark:text-slate-400">{description}</p>
+                  <p className={`text-sm leading-6 ${dark ? 'text-slate-400' : 'text-slate-500'}`}>{description}</p>
                 </div>
               ))}
             </motion.div>
@@ -135,7 +137,7 @@ export default function Quality() {
                 : 'border-slate-200 bg-white shadow-slate-900/10'
             }`}
           >
-            <div className={`relative p-8 ${dark ? 'bg-slate-950' : 'bg-white'}`}>
+            <div className={`relative p-8 ${dark ? 'bg-slate-900' : 'bg-white'}`}>
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(251,146,60,0.15),_transparent_40%)]" />
               <div className="relative space-y-6">
                 <div className="flex items-center gap-4">
@@ -149,17 +151,17 @@ export default function Quality() {
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <div className={`rounded-3xl border p-5 ${dark ? 'bg-slate-950/70 border-slate-800 text-slate-100' : 'bg-slate-100 border-slate-200 text-slate-900'}`}>
+                  <div className={`rounded-3xl border p-5 ${dark ? 'bg-slate-800 border-slate-700 text-slate-100' : 'bg-slate-100 border-slate-200 text-slate-900'}`}>
                     <p className={`text-sm uppercase tracking-[0.18em] mb-2 ${dark ? 'text-slate-400' : 'text-slate-500'}`}>Inspection</p>
                     <p className="text-base leading-7">Visual, dimensional, and NDT inspections ensure every casting is compliant before shipping.</p>
                   </div>
-                  <div className={`rounded-3xl border p-5 ${dark ? 'bg-slate-950/70 border-slate-800 text-slate-100' : 'bg-slate-100 border-slate-200 text-slate-900'}`}>
+                  <div className={`rounded-3xl border p-5 ${dark ? 'bg-slate-800 border-slate-700 text-slate-100' : 'bg-slate-100 border-slate-200 text-slate-900'}`}>
                     <p className={`text-sm uppercase tracking-[0.18em] mb-2 ${dark ? 'text-slate-400' : 'text-slate-500'}`}>Documentation</p>
                     <p className="text-base leading-7">Complete material certificates, heat treatment reports, and test records available on request.</p>
                   </div>
                 </div>
 
-                <div className={`rounded-3xl border p-5 ${dark ? 'bg-slate-950/70 border-slate-800 text-slate-100' : 'bg-slate-100 border-slate-200 text-slate-900'}`}>
+                <div className={`rounded-3xl border p-5 ${dark ? 'bg-slate-800 border-slate-700 text-slate-100' : 'bg-slate-100 border-slate-200 text-slate-900'}`}>
                   <p className={`text-sm uppercase tracking-[0.18em] mb-2 ${dark ? 'text-slate-400' : 'text-slate-500'}`}>Continuous Improvement</p>
                   <p className="text-base leading-7">Our process reviews drive ongoing optimization of defect reduction, lead time, and product consistency.</p>
                 </div>
@@ -179,7 +181,7 @@ export default function Quality() {
               className={`rounded-3xl border p-6 ${dark ? 'border-slate-800 bg-slate-900' : 'border-slate-200 bg-white'} shadow-sm`}
             >
               <h3 className="text-xl font-semibold mb-3">{title}</h3>
-              <p className="text-sm leading-7 text-slate-500 dark:text-slate-400">{details}</p>
+              <p className={`text-sm leading-7 ${dark ? 'text-slate-400' : 'text-slate-500'}`}>{details}</p>
             </motion.div>
           ))}
         </div>

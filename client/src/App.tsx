@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
@@ -6,6 +7,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Hero from './components/Hero';
+import Stats from './components/Stats';
 import About from './components/About';
 import Products from './components/Products';
 import Services from './components/Services';
@@ -25,13 +27,21 @@ import ProductsPage from './admin/ProductsPage';
 import TestimonialsPage from './admin/TestimonialsPage';
 import SettingsPage from './admin/SettingsPage';
 
-function PublicLayout({ children }: { children: React.ReactNode }) {
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
+  return null;
+}
+
+function PublicLayout({ children, fullPage = false }: { children: React.ReactNode; fullPage?: boolean }) {
   const { theme } = useTheme();
   const dark = theme === 'dark';
   return (
     <div className={dark ? 'bg-slate-950 text-slate-100' : 'bg-white text-slate-900'}>
       <Navbar />
-      {children}
+      <main className={fullPage ? undefined : 'pt-16 md:pt-20'}>
+        {children}
+      </main>
       <Footer />
     </div>
   );
@@ -53,9 +63,10 @@ export default function App() {
     <ThemeProvider>
       <AuthProvider>
         <BrowserRouter>
+          <ScrollToTop />
           <Routes>
             {/* Public website — multi-page SPA */}
-            <Route element={<PublicLayout><Hero /></PublicLayout>} path="/" />
+            <Route element={<PublicLayout fullPage><Hero /><Stats /><About /><Products /><Services /><Quality /><Process /><WhyUs /><Testimonials /><Contact /></PublicLayout>} path="/" />
             <Route element={<PublicLayout><About /></PublicLayout>} path="/about" />
             <Route element={<PublicLayout><Products /></PublicLayout>} path="/products" />
             <Route element={<PublicLayout><Services /></PublicLayout>} path="/services" />

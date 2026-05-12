@@ -1,24 +1,29 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Shield, Award, Zap } from 'lucide-react';
+import { ArrowRight, Shield, Award } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
-
-const stats = [
-  { value: '25+', label: 'Years Experience' },
-  { value: '500+', label: 'Products Cast' },
-  { value: '200+', label: 'Happy Clients' },
-  { value: 'ISO', label: '9001:2015 Certified' },
-];
+import { useSettings } from '../hooks/useSettings';
 
 const badges = [
   { icon: Shield, label: 'ISO Certified' },
   { icon: Award, label: 'Premium Quality' },
-  // { icon: Zap, label: 'Fast Delivery' },
 ];
 
 export default function Hero() {
   const { theme } = useTheme();
+  const { settings } = useSettings();
   const dark = theme === 'dark';
+
+  const yearsExp = settings.founded
+    ? `${new Date().getFullYear() - parseInt(settings.founded)}+`
+    : '25+';
+
+  const stats = [
+    { value: yearsExp,                          label: 'Years Experience' },
+    { value: settings.capacity || '500 MT',     label: 'Monthly Capacity' },
+    { value: settings.clients_served || '200+', label: 'Happy Clients' },
+    { value: 'ISO',                             label: '9001:2015 Certified' },
+  ];
 
   return (
     <section
@@ -88,7 +93,7 @@ export default function Hero() {
               transition={{ duration: 0.6, delay: 0.2 }}
               className={`text-lg leading-relaxed mb-8 max-w-lg ${dark ? 'text-slate-400' : 'text-slate-600'}`}
             >
-              Shri Tirupati Metal Cast delivers high-quality grey iron and ductile iron castings for automotive, industrial, and agricultural sectors — engineered with precision, delivered on time.
+              {settings.company_name || 'Shri Tirupati Metal Cast'} delivers high-quality grey iron and ductile iron castings for automotive, industrial, and agricultural sectors — engineered with precision, delivered on time.
             </motion.p>
 
             {/* Badges */}
@@ -171,7 +176,7 @@ export default function Hero() {
                 {stats.map(({ value, label }) => (
                   <div key={label} className="py-3 px-2 text-center">
                     <p className="text-orange-500 font-black text-base sm:text-xl">{value}</p>
-                    <p className={`text-[10px] sm:text-xs mt-0.5 leading-tight ${dark ? 'text-slate-500' : 'text-slate-500'}`}>{label}</p>
+                    <p className={`text-[10px] sm:text-xs mt-0.5 leading-tight ${dark ? 'text-slate-400' : 'text-slate-500'}`}>{label}</p>
                   </div>
                 ))}
               </div>
@@ -183,7 +188,7 @@ export default function Hero() {
               transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
               className="absolute -top-4 right-4 sm:-right-4 bg-orange-500 text-white px-4 py-2 rounded-2xl shadow-xl text-sm font-bold glow-orange"
             >
-              Since 1999
+              Since {settings.founded || '1999'}
             </motion.div>
           </motion.div>
         </div>

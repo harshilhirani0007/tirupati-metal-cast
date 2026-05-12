@@ -40,7 +40,7 @@ export default function Services() {
   const dark = theme === 'dark';
 
   return (
-    <section id="services" className={`py-20 lg:py-28 ${dark ? 'bg-slate-900' : 'bg-white'}`}>
+    <section id="services" className={`py-20 lg:py-28 ${dark ? 'bg-slate-950' : 'bg-white'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -68,7 +68,7 @@ export default function Services() {
               transition={{ delay: i * 0.1, duration: 0.55 }}
               className={`group p-7 rounded-2xl border card-hover relative overflow-hidden ${
                 dark
-                  ? 'bg-slate-800 border-slate-700 hover:border-orange-500/40'
+                  ? 'bg-slate-900 border-slate-800 hover:border-orange-500/40'
                   : 'bg-slate-50 border-slate-200 hover:border-orange-300 hover:shadow-lg'
               }`}
             >
@@ -76,7 +76,7 @@ export default function Services() {
               <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 
               <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-5 transition-colors ${
-                dark ? 'bg-slate-700 group-hover:bg-orange-500/20' : 'bg-white group-hover:bg-orange-50 shadow-sm'
+                dark ? 'bg-slate-800 group-hover:bg-orange-500/20' : 'bg-white group-hover:bg-orange-50 shadow-sm'
               }`}>
                 <Icon size={22} className="text-orange-500" />
               </div>

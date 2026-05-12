@@ -81,8 +81,10 @@ async function init(): Promise<void> {
     ['phone', '+91 98242 79626'],
     ['email', 'shreetirupatimetalcast@yahoo.com'],
     ['address', 'Shri Tirupati Metal Cast, Gujarat, India'],
-    ['founded', ''],
-    ['capacity', ''],
+    ['founded', '1999'],
+    ['capacity', '500 MT'],
+    ['clients_served', '200+'],
+    ['delivery_rate', '99%'],
   ];
   for (const [k, v] of defaults) {
     await query('INSERT INTO settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO NOTHING', [k, v]);
@@ -93,9 +95,9 @@ async function init(): Promise<void> {
   if (parseInt(pc.count) === 0) {
     const seedProducts: [string, string, string, string, string, number, number][] = [
       ['Grey Iron Castings', 'Versatile, cost-effective castings with excellent damping and machinability.', 'IS 210 / ASTM A48', 'Engine blocks,Brake drums,Pump housings,Machine beds', 'from-slate-700 to-slate-800', 1, 1],
-      ['Ductile Iron Castings', 'High-strength castings offering superior impact resistance.', 'IS 1865 / ASTM A536', 'Crankshafts,Gearboxes,Valve bodies,Agricultural parts', 'from-orange-900 to-orange-800', 1, 2],
+      ['Ductile Iron Castings', 'Ductile iron castings combine the castability of grey iron with the strength and ductility of steel. Ideal for components subject to shock and impact loads, our IS 1865 / ASTM A536 grade castings serve automotive, hydraulic, and heavy engineering sectors.', 'IS 1865 / ASTM A536', 'Crankshafts,Gearboxes,Valve bodies,Agricultural parts', 'from-orange-900 to-orange-800', 1, 3],
       ['Alloy Steel Castings', 'Premium alloy steel for extreme conditions and high-stress environments.', 'IS 1030 / ASTM A148', 'Mining equipment,Railway parts,Heavy machinery,Pressure vessels', 'from-blue-900 to-blue-800', 1, 3],
-      ['SG Iron Castings', 'Spheroidal graphite iron for applications demanding strength and ductility.', 'EN-GJS / ASTM A395', 'Hydraulic cylinders,Wind turbine parts,Auto components,Pipes & fittings', 'from-emerald-900 to-emerald-800', 1, 4],
+      ['SG Iron Castings', 'Spheroidal graphite (SG) iron castings provide a unique combination of high tensile strength, elongation, and fatigue resistance. Conforming to EN-GJS / ASTM A395 specifications, they are the preferred choice for wind energy, hydraulics, and precision automotive parts.', 'EN-GJS / ASTM A395', 'Hydraulic cylinders,Wind turbine parts,Auto components,Pipes & fittings', 'from-emerald-900 to-emerald-800', 1, 4],
       ['Stainless Steel Castings', 'Corrosion-resistant castings for food, chemical, and marine industries.', 'CF8 / CF8M / CD4MCu', 'Food processing,Chemical pumps,Marine fittings,Pharmaceutical', 'from-violet-900 to-violet-800', 1, 5],
       ['Machined Castings', 'Fully machined, ready-to-fit castings with tight tolerances.', 'Custom Tolerance', 'Engine components,Bearing housings,Flanges,Brackets', 'from-rose-900 to-rose-800', 1, 6],
     ];
@@ -129,6 +131,47 @@ async function init(): Promise<void> {
     ]);
     console.log('[DB] Sample enquiry seeded');
   }
+
+  // Backfill product images & descriptions where image_url is empty
+  const productUpdates: [string, string, string][] = [
+    [
+      'Grey Iron Castings',
+      'Grey iron castings offer outstanding machinability, excellent vibration damping, and cost-effective production for high-volume industrial applications. Our IS 210 / ASTM A48 certified castings deliver consistent mechanical properties and surface finish across every batch.',
+      'https://res.cloudinary.com/dogc5wiy4/image/upload/v1778608421/tirupati/grey-iron-castings.jpg',
+    ],
+    [
+      'Ductile Iron Castings',
+      'Ductile iron castings combine the castability of grey iron with the strength and ductility of steel. Ideal for components subject to shock and impact loads, our IS 1865 / ASTM A536 grade castings serve automotive, hydraulic, and heavy engineering sectors.',
+      'https://res.cloudinary.com/dogc5wiy4/image/upload/v1778608055/tirupati/ductile-iron-castings.jpg',
+    ],
+    [
+      'Alloy Steel Castings',
+      'Alloy steel castings deliver superior hardness, wear resistance, and high-temperature performance for demanding applications. Produced to IS 1030 / ASTM A148 standards, these castings are used in mining, railways, and pressure equipment where failure is not an option.',
+      'https://res.cloudinary.com/dogc5wiy4/image/upload/v1778608060/tirupati/alloy-steel-castings.jpg',
+    ],
+    [
+      'SG Iron Castings',
+      'Spheroidal graphite (SG) iron castings provide a unique combination of high tensile strength, elongation, and fatigue resistance. Conforming to EN-GJS / ASTM A395 specifications, they are the preferred choice for wind energy, hydraulics, and precision automotive parts.',
+      'https://res.cloudinary.com/dogc5wiy4/image/upload/v1778608061/tirupati/sg-iron-castings.jpg',
+    ],
+    [
+      'Stainless Steel Castings',
+      'Investment and sand-cast stainless steel components manufactured to CF8, CF8M, and CD4MCu grades offer exceptional corrosion resistance and hygienic properties. Widely specified for food processing, chemical handling, marine, and pharmaceutical industries.',
+      'https://res.cloudinary.com/dogc5wiy4/image/upload/v1778608062/tirupati/stainless-steel-castings.jpg',
+    ],
+    [
+      'Machined Castings',
+      'Fully machined castings delivered ready-to-assemble, eliminating secondary operations at your facility. Our in-house CNC turning, milling, boring, and grinding capabilities hold tolerances to ±0.05 mm, reducing your lead time and total cost of ownership.',
+      'https://res.cloudinary.com/dogc5wiy4/image/upload/v1778608064/tirupati/machined-castings.jpg',
+    ],
+  ];
+  for (const [category, description, image_url] of productUpdates) {
+    await query(
+      `UPDATE products SET description=$1, image_url=$2 WHERE category=$3 AND (image_url IS NULL OR image_url='' OR image_url LIKE '%unsplash%')`,
+      [description, image_url, category]
+    );
+  }
+  console.log('[DB] Product images & descriptions backfilled');
 
   console.log('[DB] PostgreSQL connected and ready');
 }

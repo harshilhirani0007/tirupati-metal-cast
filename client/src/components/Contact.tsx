@@ -105,7 +105,11 @@ export default function Contact() {
                 <div>
                   <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${dark ? 'text-slate-500' : 'text-slate-400'}`}>{label}</p>
                   {type === 'phone' ? (
-                    <a href={`tel:${value}`} className="text-sm text-orange-500 hover:text-orange-400 transition-colors">{value}</a>
+                    <div className="flex flex-col gap-0.5">
+                      {value.split('\n').filter(Boolean).map(num => (
+                        <a key={num} href={`tel:${num.trim()}`} className="text-sm text-orange-500 hover:text-orange-400 transition-colors">{num.trim()}</a>
+                      ))}
+                    </div>
                   ) : type === 'email' ? (
                     <a href={`mailto:${value}`} className="text-sm text-orange-500 hover:text-orange-400 transition-colors">{value}</a>
                   ) : type === 'url' ? (
@@ -118,7 +122,7 @@ export default function Contact() {
             ))}
 
             {/* Google Map embed */}
-            <div className={`rounded-2xl overflow-hidden border ${dark ? 'border-slate-700' : 'border-slate-200'}`}>
+            <div className={`rounded-2xl overflow-hidden border ${dark ? 'border-slate-800' : 'border-slate-200'}`}>
               <iframe
                 title="Shri Tirupati Metal Cast Location"
                 src={`https://maps.google.com/maps?q=${encodeURIComponent(settings.address || 'Shri Tirupati Metal Cast Gujarat India')}&output=embed`}
@@ -133,7 +137,7 @@ export default function Contact() {
                 href={`https://maps.google.com/?q=${encodeURIComponent(settings.address || 'Shri Tirupati Metal Cast Gujarat India')}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`flex items-center justify-center gap-2 py-2.5 text-xs font-semibold transition-colors ${dark ? 'bg-slate-800 text-orange-400 hover:text-orange-300' : 'bg-slate-50 text-orange-500 hover:text-orange-600'}`}
+                className={`flex items-center justify-center gap-2 py-2.5 text-xs font-semibold transition-colors ${dark ? 'bg-slate-900 text-orange-400 hover:text-orange-300' : 'bg-slate-50 text-orange-500 hover:text-orange-600'}`}
               >
                 <MapPin size={12} />
                 Open in Google Maps

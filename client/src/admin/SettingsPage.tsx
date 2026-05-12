@@ -9,12 +9,14 @@ interface FieldError { [key: string]: string; }
 const settingFields = [
   { key: 'company_name', label: 'Company Name',    placeholder: 'Shri Tirupati Metal Cast',        icon: Building2 },
   { key: 'tagline',      label: 'Tagline',          placeholder: 'Precision metal castings...',      icon: Globe     },
-  { key: 'phone',        label: 'Phone Number',     placeholder: '+91 98242 79626', type: 'text',   icon: Phone     },
+  { key: 'phone',        label: 'Phone Numbers',    placeholder: '+91 98242 79626\n+91 98765 43210', type: 'textarea', icon: Phone },
   { key: 'email',        label: 'Email Address',    placeholder: 'company@example.com', type: 'email', icon: Mail  },
   { key: 'website',      label: 'Website URL',      placeholder: 'https://example.com', type: 'url', icon: Globe    },
   { key: 'address',      label: 'Address',          placeholder: 'City, State, Country',             icon: MapPin   },
-  { key: 'founded',      label: 'Founded Year',     placeholder: '1999', type: 'number',             icon: Calendar  },
-  { key: 'capacity',     label: 'Monthly Capacity', placeholder: '500 MT',                           icon: Gauge    },
+  { key: 'founded',        label: 'Founded Year',     placeholder: '1999', type: 'number',   icon: Calendar },
+  { key: 'capacity',       label: 'Monthly Capacity', placeholder: '500 MT',                icon: Gauge    },
+  { key: 'clients_served', label: 'Clients Served',   placeholder: '200+',                  icon: Globe    },
+  { key: 'delivery_rate',  label: 'Delivery Rate',    placeholder: '99%',                   icon: Gauge    },
 ];
 
 export default function SettingsPage() {
@@ -187,15 +189,26 @@ export default function SettingsPage() {
                 <div key={key}>
                   <label className={labelCls}>{label}</label>
                   <div className="relative">
-                    <Icon size={14} className={`absolute left-3 top-1/2 -translate-y-1/2 ${hasErr ? 'text-red-400' : 'text-slate-400'}`} />
-                    <input
-                      type={type || 'text'}
-                      className={hasErr ? inputError : inputNormal}
-                      placeholder={placeholder}
-                      value={settings[key] || ''}
-                      onChange={e => handleFieldChange(key, e.target.value)}
-                      onBlur={() => handleFieldBlur(key)}
-                    />
+                    <Icon size={14} className={`absolute left-3 top-3 ${hasErr ? 'text-red-400' : 'text-slate-400'}`} />
+                    {type === 'textarea' ? (
+                      <textarea
+                        rows={3}
+                        className={`${hasErr ? inputError : inputNormal} resize-none`}
+                        placeholder={placeholder}
+                        value={settings[key] || ''}
+                        onChange={e => handleFieldChange(key, e.target.value)}
+                        onBlur={() => handleFieldBlur(key)}
+                      />
+                    ) : (
+                      <input
+                        type={type || 'text'}
+                        className={hasErr ? inputError : inputNormal}
+                        placeholder={placeholder}
+                        value={settings[key] || ''}
+                        onChange={e => handleFieldChange(key, e.target.value)}
+                        onBlur={() => handleFieldBlur(key)}
+                      />
+                    )}
                   </div>
                   {hasErr && (
                     <p className="flex items-center gap-1.5 mt-1.5 text-xs text-red-400">

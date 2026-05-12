@@ -10,6 +10,8 @@ const quickLinks = [
   { label: 'Services', href: '/services' },
   { label: 'Quality', href: '/quality' },
   { label: 'Process', href: '/process' },
+  { label: 'Why Us', href: '/why-us' },
+  { label: 'Testimonials', href: '/testimonials' },
   { label: 'Contact', href: '/contact' },
 ];
 
@@ -38,8 +40,8 @@ export default function Footer() {
                 <Cog size={18} className="text-white" />
               </div>
               <div className="leading-none">
-                <span className="text-white font-black block text-sm tracking-tight">SHRI TIRUPATI</span>
-                <span className="text-orange-500 text-[10px] font-semibold tracking-[0.2em] uppercase">Metal Cast</span>
+                <span className="text-white font-black block text-sm tracking-tight uppercase">{settings.company_name?.split(' ').slice(0, -2).join(' ') || 'SHRI TIRUPATI'}</span>
+                <span className="text-orange-500 text-[10px] font-semibold tracking-[0.2em] uppercase">{settings.company_name?.split(' ').slice(-2).join(' ') || 'Metal Cast'}</span>
               </div>
             </Link>
             <p className="text-slate-400 text-sm leading-relaxed mb-5">
@@ -50,7 +52,14 @@ export default function Footer() {
                 <div className="flex items-start gap-2"><MapPin size={14} className="text-orange-500 mt-0.5 shrink-0" /><span>{settings.address}</span></div>
               )}
               {settings.phone && (
-                <div className="flex items-center gap-2"><Phone size={14} className="text-orange-500 shrink-0" /><a href={`tel:${settings.phone}`} className="hover:text-orange-400 transition-colors">{settings.phone}</a></div>
+                <div className="flex items-start gap-2">
+                  <Phone size={14} className="text-orange-500 shrink-0 mt-0.5" />
+                  <div className="flex flex-col gap-0.5">
+                    {settings.phone.split('\n').filter(Boolean).map(num => (
+                      <a key={num} href={`tel:${num.trim()}`} className="hover:text-orange-400 transition-colors">{num.trim()}</a>
+                    ))}
+                  </div>
+                </div>
               )}
               {settings.email && (
                 <div className="flex items-center gap-2"><Mail size={14} className="text-orange-500 shrink-0" /><a href={`mailto:${settings.email}`} className="hover:text-orange-400 transition-colors">{settings.email}</a></div>

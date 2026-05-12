@@ -1,15 +1,7 @@
 import { motion } from 'framer-motion';
 import { CheckCircle2, Factory, Users, Globe, Flame, Cog, Hammer } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
-
-const highlights = [
-  'State-of-the-art induction furnace technology',
-  'CNC machining & precision finishing',
-  'In-house quality testing & metallurgical lab',
-  'Export capability to 15+ countries',
-  'Capacity: 500 MT/month',
-  'Custom alloy formulations available',
-];
+import { useSettings } from '../hooks/useSettings';
 
 const pillars = [
   { icon: Factory, title: 'Modern Infrastructure', desc: 'Equipped with latest induction melting furnaces, sand testing equipment, and CNC machining centres.' },
@@ -24,7 +16,17 @@ const fadeUp = {
 
 export default function About() {
   const { theme } = useTheme();
+  const { settings } = useSettings();
   const dark = theme === 'dark';
+
+  const highlights = [
+    'State-of-the-art induction furnace technology',
+    'CNC machining & precision finishing',
+    'In-house quality testing & metallurgical lab',
+    'Export capability to 15+ countries',
+    `Capacity: ${settings.capacity || '500 MT'}/month`,
+    'Custom alloy formulations available',
+  ];
 
   return (
     <section
@@ -43,13 +45,13 @@ export default function About() {
             <span className="gradient-text">Purpose</span>
           </h2>
           <p className={`max-w-2xl text-lg ${dark ? 'text-slate-400' : 'text-slate-600'}`}>
-            Shri Tirupati Metal Cast has been a cornerstone of India's casting industry — delivering precision components that power machines, vehicles, and industries worldwide.
+            {settings.company_name || 'Shri Tirupati Metal Cast'} has been a cornerstone of India's casting industry — delivering precision components that power machines, vehicles, and industries worldwide.
           </p>
         </motion.div>
 
         <motion.div
           initial="hidden" whileInView="visible" viewport={{ once: true }} custom={1} variants={fadeUp}
-          className={`mb-14 rounded-[2.5rem] p-8 border ${dark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'}`}
+          className={`mb-14 rounded-[2.5rem] p-8 border ${dark ? 'bg-slate-900 border-slate-800' : 'bg-slate-50 border-slate-200'}`}
         >
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-10">
             <div>
@@ -84,7 +86,7 @@ export default function About() {
                 key={name}
                 className={`rounded-[2rem] p-6 border shadow-lg transition-transform duration-200 hover:-translate-y-1 ${
                   dark
-                    ? 'bg-slate-950 border-slate-800 shadow-slate-950/40'
+                    ? 'bg-slate-800 border-slate-700 shadow-slate-950/40'
                     : 'bg-white border-slate-200 shadow-slate-900/10'
                 }`}
               >
@@ -108,8 +110,7 @@ export default function About() {
         <div className="grid lg:grid-cols-2 gap-14 items-center">
           {/* Left — highlights */}
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} custom={1} variants={fadeUp}>
-            <div className={`relative rounded-3xl p-8 border ${dark ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-200'}`}>
-              <div className="absolute top-0 left-0 w-32 h-1 bg-gradient-to-r from-orange-500 to-orange-300 rounded-full" />
+            <div className={`relative rounded-3xl p-8 border ${dark ? 'bg-slate-900 border-slate-800' : 'bg-slate-50 border-slate-200'}`}>
               <h3 className={`text-xl font-bold mb-6 ${dark ? 'text-white' : 'text-slate-900'}`}>
                 Why Manufacturers Trust Us
               </h3>
@@ -124,7 +125,7 @@ export default function About() {
                     className="flex items-start gap-3"
                   >
                     <CheckCircle2 size={18} className="text-orange-500 mt-0.5 shrink-0" />
-                    <span className={`text-sm ${dark ? 'text-slate-300' : 'text-slate-700'}`}>{item}</span>
+                    <span className={`text-sm ${dark ? 'text-slate-400' : 'text-slate-700'}`}>{item}</span>
                   </motion.li>
                 ))}
               </ul>
@@ -150,7 +151,7 @@ export default function About() {
                 initial="hidden" whileInView="visible" viewport={{ once: true }}
                 custom={i + 2} variants={fadeUp}
                 className={`flex gap-5 p-6 rounded-2xl border card-hover ${
-                  dark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200 shadow-sm'
+                  dark ? 'bg-slate-900 border-slate-800' : 'bg-slate-50 border-slate-200'
                 }`}
               >
                 <div className="w-12 h-12 bg-orange-500/10 rounded-xl flex items-center justify-center shrink-0">

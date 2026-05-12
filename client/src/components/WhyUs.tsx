@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { ShieldCheck, Clock, Microscope, BadgeCheck, Leaf, PhoneCall } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+import { useSettings } from '../hooks/useSettings';
 
 const reasons = [
   { icon: ShieldCheck, title: 'Zero-Defect Commitment', desc: 'Rigorous multi-stage quality gates eliminate defects before any component leaves our facility.' },
@@ -13,10 +14,11 @@ const reasons = [
 
 export default function WhyUs() {
   const { theme } = useTheme();
+  const { settings } = useSettings();
   const dark = theme === 'dark';
 
   return (
-    <section className={`py-20 lg:py-28 ${dark ? 'bg-slate-950' : 'bg-slate-50'}`}>
+    <section id="why-us" className={`py-20 lg:py-28 ${dark ? 'bg-slate-950' : 'bg-slate-50'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -27,7 +29,7 @@ export default function WhyUs() {
         >
           <span className="text-orange-500 text-sm font-bold tracking-[0.2em] uppercase mb-3 block">Our Edge</span>
           <h2 className={`text-3xl sm:text-4xl lg:text-5xl font-black mb-4 ${dark ? 'text-white' : 'text-slate-900'}`}>
-            Why Choose <span className="gradient-text">Shri Tirupati</span>
+            Why Choose <span className="gradient-text">{settings.company_name?.split(' ').slice(0, 2).join(' ') || 'Shri Tirupati'}</span>
           </h2>
           <p className={`max-w-2xl mx-auto text-lg ${dark ? 'text-slate-400' : 'text-slate-600'}`}>
             We're not just a foundry — we're an engineering partner committed to your success.

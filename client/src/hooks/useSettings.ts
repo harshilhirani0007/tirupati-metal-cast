@@ -10,6 +10,8 @@ interface Settings {
   address?: string;
   founded?: string;
   capacity?: string;
+  clients_served?: string;
+  delivery_rate?: string;
 }
 
 export function useSettings() {

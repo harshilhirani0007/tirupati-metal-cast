@@ -38,7 +38,7 @@ export default function Testimonials() {
   const dark = theme === 'dark';
 
   return (
-    <section className={`py-20 lg:py-28 ${dark ? 'bg-slate-900' : 'bg-white'}`}>
+    <section id="testimonials" className={`py-20 lg:py-28 ${dark ? 'bg-slate-950' : 'bg-white'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -65,7 +65,7 @@ export default function Testimonials() {
               viewport={{ once: true }}
               transition={{ delay: i * 0.12, duration: 0.55 }}
               className={`p-7 rounded-2xl border relative ${
-                dark ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-200'
+                dark ? 'bg-slate-900 border-slate-800' : 'bg-slate-50 border-slate-200'
               }`}
             >
               <Quote size={32} className="text-orange-500/20 absolute top-6 right-6" />
@@ -75,7 +75,7 @@ export default function Testimonials() {
                   <Star key={j} size={14} fill="#f97316" className="text-orange-500" />
                 ))}
               </div>
-              <p className={`text-sm leading-relaxed mb-6 ${dark ? 'text-slate-300' : 'text-slate-700'}`}>
+              <p className={`text-sm leading-relaxed mb-6 ${dark ? 'text-slate-400' : 'text-slate-600'}`}>
                 "{text}"
               </p>
               <div className="flex items-center gap-3">
