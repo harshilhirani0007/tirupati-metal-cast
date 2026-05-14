@@ -16,11 +16,11 @@ const GALLERIES: Record<string, string[]> = {
     'https://res.cloudinary.com/dogc5wiy4/image/upload/v1778782994/tirupati/gallery/ci-counter-weight/ci_casting_5.jpg',
   ],
   'Grey Iron Castings': [
-    'https://res.cloudinary.com/dogc5wiy4/image/upload/v1778781379/tirupati/gallery/grey-iron/pump_1.jpg',
-    'https://res.cloudinary.com/dogc5wiy4/image/upload/v1778781381/tirupati/gallery/grey-iron/pump_2.jpg',
-    'https://res.cloudinary.com/dogc5wiy4/image/upload/v1778781382/tirupati/gallery/grey-iron/pump_3.jpg',
-    'https://res.cloudinary.com/dogc5wiy4/image/upload/v1778781383/tirupati/gallery/grey-iron/vibro_1.jpg',
-    'https://res.cloudinary.com/dogc5wiy4/image/upload/v1778781384/tirupati/gallery/grey-iron/vibro_2.jpg',
+    'https://res.cloudinary.com/dogc5wiy4/image/upload/v1778783975/tirupati/gallery/grey-iron/pump_1.jpg',
+    'https://res.cloudinary.com/dogc5wiy4/image/upload/v1778783976/tirupati/gallery/grey-iron/pump_2.jpg',
+    'https://res.cloudinary.com/dogc5wiy4/image/upload/v1778783977/tirupati/gallery/grey-iron/pump_3.jpg',
+    'https://res.cloudinary.com/dogc5wiy4/image/upload/v1778783978/tirupati/gallery/grey-iron/vibro_1.jpg',
+    'https://res.cloudinary.com/dogc5wiy4/image/upload/v1778783980/tirupati/gallery/grey-iron/vibro_2.jpg',
   ],
   'Ductile Iron Castings': [
     'https://res.cloudinary.com/dogc5wiy4/image/upload/v1778781386/tirupati/gallery/ductile-iron/elecmotor_1.jpg',
@@ -129,7 +129,7 @@ function ProductSection({ product, i, dark }: { product: Product; i: number; dar
           <div className="lg:w-[58%] flex flex-col gap-2 p-3 sm:p-4">
             {/* Main large image */}
             <div
-              className="relative w-full rounded-xl sm:rounded-2xl overflow-hidden cursor-zoom-in"
+              className={`relative w-full rounded-xl sm:rounded-2xl overflow-hidden cursor-zoom-in flex items-center justify-center ${dark ? 'bg-slate-800' : 'bg-slate-100'}`}
               style={{ height: '260px', minHeight: '220px' }}
               onClick={() => setLightbox(mainImg)}
             >
@@ -142,7 +142,7 @@ function ProductSection({ product, i, dark }: { product: Product; i: number; dar
                   transition={{ duration: 0.25 }}
                   src={gallery[mainImg]}
                   alt={product.category}
-                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                  className="w-full h-full object-contain hover:scale-105 transition-transform duration-500 p-2"
                 />
               </AnimatePresence>
               {/* Zoom hint */}
@@ -169,7 +169,7 @@ function ProductSection({ product, i, dark }: { product: Product; i: number; dar
                         : 'border-slate-200 hover:border-slate-400 opacity-60 hover:opacity-100'
                   }`}
                 >
-                  <img src={img} alt="" className="w-full h-full object-cover" loading="lazy" />
+                  <img src={img} alt="" className="w-full h-full object-contain p-1" loading="lazy" />
                 </button>
               ))}
             </div>
