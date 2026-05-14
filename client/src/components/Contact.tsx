@@ -40,6 +40,7 @@ export default function Contact() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (submitting) return;
+    if (!form.name.trim() || !form.company.trim() || !form.message.trim()) return;
     validateEmail(form.email);
     if (emailError || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) return;
     setSubmitting(true);

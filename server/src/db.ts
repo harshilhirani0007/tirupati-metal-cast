@@ -55,6 +55,7 @@ async function init(): Promise<void> {
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
     ALTER TABLE products ADD COLUMN IF NOT EXISTS image_url TEXT DEFAULT '';
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS gallery_images TEXT DEFAULT '[]';
 
     CREATE TABLE IF NOT EXISTS testimonials (
       id SERIAL PRIMARY KEY,

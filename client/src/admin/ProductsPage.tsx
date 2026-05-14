@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight, X, Save, Package, ImagePlus, Image } from 'lucide-react';
+import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight, X, Save, Package, ImagePlus, Image, Images } from 'lucide-react';
 import { useAuth, API_BASE } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { Product } from '../types';
@@ -15,6 +15,7 @@ interface ProductForm {
   active: number;
   sort_order: number;
   image_url: string;
+  gallery_images: string[];
 }
 
 const colorOptions = [
@@ -26,7 +27,11 @@ const colorOptions = [
   { label: 'Rose',    value: 'from-rose-900 to-rose-800' },
 ];
 
-const emptyForm: ProductForm = { category: '', description: '', grade: '', applications: '', color: 'from-slate-700 to-slate-800', active: 1, sort_order: 0, image_url: '' };
+const emptyForm: ProductForm = {
+  category: '', description: '', grade: '', applications: '',
+  color: 'from-slate-700 to-slate-800', active: 1, sort_order: 0,
+  image_url: '', gallery_images: [],
+};
 
 export default function ProductsPage() {
   const { token } = useAuth();
@@ -40,7 +45,9 @@ export default function ProductsPage() {
   const [deleting, setDeleting] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [uploadingGallery, setUploadingGallery] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const galleryFileRef = useRef<HTMLInputElement>(null);
 
   const load = () =>
     fetch(`${API_BASE}/products/all`, { headers: { Authorization: `Bearer ${token}` } })
@@ -50,37 +57,68 @@ export default function ProductsPage() {
 
   const openNew = () => { setForm(emptyForm); setModal({ open: true, editing: null }); };
   const openEdit = (p: Product) => {
-    setForm({ ...p, applications: p.applications.join(', '), image_url: p.image_url ?? '' });
+    setForm({
+      ...p,
+      applications: p.applications.join(', '),
+      image_url: p.image_url ?? '',
+      gallery_images: Array.isArray(p.gallery_images) ? p.gallery_images : (typeof p.gallery_images === 'string' ? (() => { try { return JSON.parse(p.gallery_images as unknown as string); } catch { return []; } })() : []),
+    });
     setModal({ open: true, editing: p });
   };
 
-  const handleImageUpload = async (file: File) => {
+  const uploadImage = async (file: File): Promise<string | null> => {
+    const fd = new FormData();
+    fd.append('image', file);
+    const res = await fetch(`${API_BASE}/products/upload`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: fd,
+    });
+    const data = await res.json() as { url?: string; error?: string };
+    if (res.ok && data.url) return data.url;
+    throw new Error(data.error ?? 'Upload failed');
+  };
+
+  const handleMainImageUpload = async (file: File) => {
     setUploading(true);
     try {
-      const fd = new FormData();
-      fd.append('image', file);
-      const res = await fetch(`${API_BASE}/products/upload`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: fd,
-      });
-      const data = await res.json() as { url?: string; error?: string };
-      if (res.ok && data.url) {
-        setForm(f => ({ ...f, image_url: data.url! }));
-      } else {
-        setToast({ message: data.error ?? 'Upload failed', type: 'error' });
-      }
-    } catch {
-      setToast({ message: 'Error uploading image', type: 'error' });
+      const url = await uploadImage(file);
+      if (url) setForm(f => ({ ...f, image_url: url }));
+    } catch (e) {
+      setToast({ message: (e as Error).message, type: 'error' });
     } finally {
       setUploading(false);
     }
   };
 
+  const handleGalleryUpload = async (files: FileList) => {
+    const remaining = 5 - form.gallery_images.length;
+    if (remaining <= 0) {
+      setToast({ message: 'Maximum 5 gallery images allowed', type: 'error' });
+      return;
+    }
+    const toUpload = Array.from(files).slice(0, remaining);
+    setUploadingGallery(true);
+    try {
+      const urls = await Promise.all(toUpload.map(uploadImage));
+      const valid = urls.filter(Boolean) as string[];
+      setForm(f => ({ ...f, gallery_images: [...f.gallery_images, ...valid] }));
+    } catch (e) {
+      setToast({ message: (e as Error).message, type: 'error' });
+    } finally {
+      setUploadingGallery(false);
+      if (galleryFileRef.current) galleryFileRef.current.value = '';
+    }
+  };
+
+  const removeGalleryImage = (idx: number) => {
+    setForm(f => ({ ...f, gallery_images: f.gallery_images.filter((_, i) => i !== idx) }));
+  };
+
   const save = async () => {
     setSaving(true);
     try {
-      const body = { ...form, applications: form.applications };
+      const body = { ...form, applications: form.applications, gallery_images: form.gallery_images };
       const url = modal.editing ? `${API_BASE}/products/${modal.editing.id}` : `${API_BASE}/products`;
       const method = modal.editing ? 'PUT' : 'POST';
       const res = await fetch(url, { method, headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
@@ -102,7 +140,7 @@ export default function ProductsPage() {
     await fetch(`${API_BASE}/products/${p.id}`, {
       method: 'PUT',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...p, active: p.active ? 0 : 1, applications: p.applications.join(',') }),
+      body: JSON.stringify({ ...p, active: p.active ? 0 : 1, applications: Array.isArray(p.applications) ? p.applications.join(',') : p.applications, gallery_images: p.gallery_images ?? [] }),
     });
     load();
   };
@@ -181,16 +219,22 @@ export default function ProductsPage() {
                     </div>
                   </>
                 )}
-                {/* Dark overlay always */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
 
-                {/* Category pinned bottom-left */}
                 <div className="absolute bottom-0 left-0 right-0 p-4">
                   <p className="text-[10px] font-bold uppercase tracking-widest text-orange-400 mb-0.5">{p.grade}</p>
                   <h3 className="text-white font-black text-base leading-tight">{p.category}</h3>
                 </div>
 
-                {/* Active toggle top-right */}
+                {/* Gallery count badge */}
+                {(p.gallery_images?.length ?? 0) > 0 && (
+                  <div className="absolute top-3 left-3">
+                    <span className="flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold bg-black/50 text-white/80 backdrop-blur-sm">
+                      <Images size={11} /> {p.gallery_images.length} photos
+                    </span>
+                  </div>
+                )}
+
                 <div className="absolute top-3 right-3">
                   <button
                     onClick={() => toggleActive(p)}
@@ -208,7 +252,7 @@ export default function ProductsPage() {
 
               {/* Content */}
               <div className="flex-1 p-5">
-                <p className={`text-xs leading-relaxed mb-4 ${dark ? 'text-slate-400' : 'text-slate-600'}`}>
+                <p className={`text-xs leading-relaxed mb-4 line-clamp-3 ${dark ? 'text-slate-400' : 'text-slate-600'}`}>
                   {p.description}
                 </p>
                 {p.applications.length > 0 && (
@@ -252,14 +296,14 @@ export default function ProductsPage() {
       {/* Add/Edit Modal */}
       {modal.open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-          <div className={`w-full max-w-lg rounded-3xl border shadow-2xl flex flex-col max-h-[90vh] ${dark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+          <div className={`w-full max-w-2xl rounded-3xl border shadow-2xl flex flex-col max-h-[92vh] ${dark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
             <div className={`flex items-center justify-between px-6 py-5 border-b shrink-0 ${dark ? 'border-slate-800' : 'border-slate-100'}`}>
               <div>
                 <h2 className={`font-black text-lg ${dark ? 'text-white' : 'text-slate-900'}`}>
                   {modal.editing ? 'Edit Product' : 'Add Product'}
                 </h2>
                 <p className={`text-xs mt-0.5 ${dark ? 'text-slate-500' : 'text-slate-400'}`}>
-                  {modal.editing ? 'Update product details and photo' : 'Fill in product info and upload a photo'}
+                  {modal.editing ? 'Update product details, main photo, and gallery' : 'Fill in product info and upload photos'}
                 </p>
               </div>
               <button onClick={() => setModal({ open: false, editing: null })} className={`p-2 rounded-xl transition-colors ${dark ? 'text-slate-400 hover:text-white hover:bg-slate-800' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100'}`}>
@@ -267,53 +311,89 @@ export default function ProductsPage() {
               </button>
             </div>
 
-            <div className="px-6 py-5 space-y-4 overflow-y-auto flex-1">
-              {/* Image upload */}
+            <div className="px-6 py-5 space-y-5 overflow-y-auto flex-1">
+              {/* Main image */}
               <div>
-                <label className={labelCls}>Product Photo</label>
-                <input
-                  ref={fileRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={e => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); }}
-                />
+                <label className={labelCls}>Main Product Photo</label>
+                <input ref={fileRef} type="file" accept="image/*" className="hidden"
+                  onChange={e => { const f = e.target.files?.[0]; if (f) handleMainImageUpload(f); }} />
                 {form.image_url ? (
                   <div className="relative rounded-xl overflow-hidden border border-slate-700 h-40">
                     <img src={form.image_url} alt="Product" className="w-full h-full object-cover" />
                     <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => fileRef.current?.click()}
-                        className="px-3 py-1.5 bg-white text-slate-900 text-xs font-bold rounded-lg"
-                      >
-                        Change Photo
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setForm(f => ({ ...f, image_url: '' }))}
-                        className="px-3 py-1.5 bg-red-500 text-white text-xs font-bold rounded-lg"
-                      >
-                        Remove
-                      </button>
+                      <button type="button" onClick={() => fileRef.current?.click()}
+                        className="px-3 py-1.5 bg-white text-slate-900 text-xs font-bold rounded-lg">Change Photo</button>
+                      <button type="button" onClick={() => setForm(f => ({ ...f, image_url: '' }))}
+                        className="px-3 py-1.5 bg-red-500 text-white text-xs font-bold rounded-lg">Remove</button>
                     </div>
                   </div>
                 ) : (
-                  <button
-                    type="button"
-                    onClick={() => fileRef.current?.click()}
-                    disabled={uploading}
+                  <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading}
                     className={`w-full h-32 rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-colors ${
-                      dark
-                        ? 'border-slate-700 hover:border-orange-500/50 text-slate-500 hover:text-orange-400'
-                        : 'border-slate-300 hover:border-orange-400 text-slate-400 hover:text-orange-500'
-                    }`}
-                  >
-                    {uploading ? (
-                      <><div className="w-5 h-5 border-2 border-orange-500/30 border-t-orange-500 rounded-full animate-spin" /><span className="text-xs">Uploading...</span></>
-                    ) : (
-                      <><ImagePlus size={22} /><span className="text-xs font-semibold">Click to upload photo</span><span className="text-[10px]">JPG, PNG, WebP · Max 5 MB</span></>
+                      dark ? 'border-slate-700 hover:border-orange-500/50 text-slate-500 hover:text-orange-400'
+                           : 'border-slate-300 hover:border-orange-400 text-slate-400 hover:text-orange-500'
+                    }`}>
+                    {uploading
+                      ? <><div className="w-5 h-5 border-2 border-orange-500/30 border-t-orange-500 rounded-full animate-spin" /><span className="text-xs">Uploading...</span></>
+                      : <><ImagePlus size={22} /><span className="text-xs font-semibold">Click to upload main photo</span><span className="text-[10px]">JPG, PNG, WebP · Max 5 MB</span></>
+                    }
+                  </button>
+                )}
+              </div>
+
+              {/* Gallery images */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className={labelCls + ' mb-0'}>Gallery Photos <span className={`font-normal ${dark ? 'text-slate-600' : 'text-slate-400'}`}>({form.gallery_images.length}/5)</span></label>
+                  {form.gallery_images.length < 5 && (
+                    <button type="button" onClick={() => galleryFileRef.current?.click()} disabled={uploadingGallery}
+                      className="flex items-center gap-1 text-xs font-bold text-orange-500 hover:text-orange-400 transition-colors">
+                      {uploadingGallery
+                        ? <><div className="w-3 h-3 border-2 border-orange-500/30 border-t-orange-500 rounded-full animate-spin" /> Uploading...</>
+                        : <><Plus size={13} /> Add Photos</>
+                      }
+                    </button>
+                  )}
+                </div>
+                <input ref={galleryFileRef} type="file" accept="image/*" multiple className="hidden"
+                  onChange={e => { if (e.target.files?.length) handleGalleryUpload(e.target.files); }} />
+
+                {form.gallery_images.length > 0 ? (
+                  <div className="grid grid-cols-5 gap-2">
+                    {form.gallery_images.map((url, idx) => (
+                      <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border border-slate-700 group">
+                        <img src={url} alt={`Gallery ${idx + 1}`} className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => removeGalleryImage(idx)}
+                          className="absolute top-1 right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X size={10} className="text-white" />
+                        </button>
+                        <div className={`absolute bottom-0 inset-x-0 text-center text-[9px] font-bold py-0.5 ${dark ? 'bg-black/60 text-slate-400' : 'bg-black/50 text-white'}`}>
+                          {idx + 1}
+                        </div>
+                      </div>
+                    ))}
+                    {form.gallery_images.length < 5 && (
+                      <button type="button" onClick={() => galleryFileRef.current?.click()}
+                        className={`aspect-square rounded-lg border-2 border-dashed flex flex-col items-center justify-center transition-colors ${
+                          dark ? 'border-slate-700 hover:border-orange-500/50 text-slate-600 hover:text-orange-400'
+                               : 'border-slate-300 hover:border-orange-400 text-slate-300 hover:text-orange-400'
+                        }`}>
+                        <Plus size={16} />
+                      </button>
                     )}
+                  </div>
+                ) : (
+                  <button type="button" onClick={() => galleryFileRef.current?.click()} disabled={uploadingGallery}
+                    className={`w-full h-24 rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-1.5 transition-colors ${
+                      dark ? 'border-slate-700 hover:border-orange-500/50 text-slate-500 hover:text-orange-400'
+                           : 'border-slate-300 hover:border-orange-400 text-slate-400 hover:text-orange-500'
+                    }`}>
+                    <Images size={20} />
+                    <span className="text-xs font-semibold">Upload up to 5 gallery photos</span>
+                    <span className="text-[10px]">Select multiple files at once</span>
                   </button>
                 )}
               </div>
@@ -324,7 +404,9 @@ export default function ProductsPage() {
               </div>
               <div>
                 <label className={labelCls}>Description *</label>
-                <textarea className={`${inputCls} resize-none`} rows={2} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Brief product description" />
+                <textarea className={`${inputCls} resize-none`} rows={6} value={form.description}
+                  onChange={e => setForm({ ...form, description: e.target.value })}
+                  placeholder="Detailed product description (3 paragraphs recommended)" />
               </div>
               <div>
                 <label className={labelCls}>Grade / Standard *</label>
@@ -365,14 +447,13 @@ export default function ProductsPage() {
               </button>
               <button
                 onClick={save}
-                disabled={saving || uploading}
+                disabled={saving || uploading || uploadingGallery}
                 className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-orange-500 hover:bg-orange-600 disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-bold rounded-xl transition-colors"
               >
-                {saving ? (
-                  <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Saving...</>
-                ) : (
-                  <><Save size={14} /> {modal.editing ? 'Update' : 'Create'}</>
-                )}
+                {saving
+                  ? <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Saving...</>
+                  : <><Save size={14} /> {modal.editing ? 'Update' : 'Create'}</>
+                }
               </button>
             </div>
           </div>

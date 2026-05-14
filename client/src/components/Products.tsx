@@ -6,43 +6,6 @@ import { useTheme } from '../context/ThemeContext';
 import { API_BASE } from '../context/AuthContext';
 import { Product } from '../types';
 
-const GALLERIES: Record<string, string[]> = {
-  'CI Casting Counter Weight': [
-    'https://res.cloudinary.com/dogc5wiy4/image/upload/v1778782989/tirupati/gallery/ci-counter-weight/ci_casting_1.jpg',
-    'https://res.cloudinary.com/dogc5wiy4/image/upload/v1778782990/tirupati/gallery/ci-counter-weight/ci_casting_2.jpg',
-    'https://res.cloudinary.com/dogc5wiy4/image/upload/v1778782991/tirupati/gallery/ci-counter-weight/ci_casting_3.jpg',
-    'https://res.cloudinary.com/dogc5wiy4/image/upload/v1778782992/tirupati/gallery/ci-counter-weight/ci_casting_4.jpg',
-    'https://res.cloudinary.com/dogc5wiy4/image/upload/v1778782994/tirupati/gallery/ci-counter-weight/ci_casting_5.jpg',
-  ],
-  'Grey Iron Castings': [
-    'https://res.cloudinary.com/dogc5wiy4/image/upload/v1778783975/tirupati/gallery/grey-iron/pump_1.jpg',
-    'https://res.cloudinary.com/dogc5wiy4/image/upload/v1778783976/tirupati/gallery/grey-iron/pump_2.jpg',
-    'https://res.cloudinary.com/dogc5wiy4/image/upload/v1778783977/tirupati/gallery/grey-iron/pump_3.jpg',
-    'https://res.cloudinary.com/dogc5wiy4/image/upload/v1778783978/tirupati/gallery/grey-iron/vibro_1.jpg',
-    'https://res.cloudinary.com/dogc5wiy4/image/upload/v1778783980/tirupati/gallery/grey-iron/vibro_2.jpg',
-  ],
-  'Ductile Iron Castings': [
-    'https://res.cloudinary.com/dogc5wiy4/image/upload/v1778781386/tirupati/gallery/ductile-iron/elecmotor_1.jpg',
-    'https://res.cloudinary.com/dogc5wiy4/image/upload/v1778781387/tirupati/gallery/ductile-iron/elecmotor_2.jpg',
-    'https://res.cloudinary.com/dogc5wiy4/image/upload/v1778781388/tirupati/gallery/ductile-iron/elecmotor_3.jpg',
-    'https://res.cloudinary.com/dogc5wiy4/image/upload/v1778781389/tirupati/gallery/ductile-iron/elecmotor_4.jpg',
-    'https://res.cloudinary.com/dogc5wiy4/image/upload/v1778781390/tirupati/gallery/ductile-iron/elecmotor_5.jpg',
-  ],
-  'SG Iron Castings': [
-    'https://res.cloudinary.com/dogc5wiy4/image/upload/v1778781392/tirupati/gallery/sg-iron/gearbox_1.jpg',
-    'https://res.cloudinary.com/dogc5wiy4/image/upload/v1778781393/tirupati/gallery/sg-iron/gearbox_2.jpg',
-    'https://res.cloudinary.com/dogc5wiy4/image/upload/v1778781394/tirupati/gallery/sg-iron/gearbox_3.jpg',
-    'https://res.cloudinary.com/dogc5wiy4/image/upload/v1778781395/tirupati/gallery/sg-iron/gearbox_4.jpg',
-    'https://res.cloudinary.com/dogc5wiy4/image/upload/v1778781396/tirupati/gallery/sg-iron/gearbox_5.jpg',
-  ],
-  'Machined Castings': [
-    'https://res.cloudinary.com/dogc5wiy4/image/upload/v1778781397/tirupati/gallery/machined-castings/endshield_1.jpg',
-    'https://res.cloudinary.com/dogc5wiy4/image/upload/v1778781399/tirupati/gallery/machined-castings/endshield_2.jpg',
-    'https://res.cloudinary.com/dogc5wiy4/image/upload/v1778781401/tirupati/gallery/machined-castings/endshield_3.jpg',
-    'https://res.cloudinary.com/dogc5wiy4/image/upload/v1778781402/tirupati/gallery/machined-castings/endshield_4.jpg',
-    'https://res.cloudinary.com/dogc5wiy4/image/upload/v1778781404/tirupati/gallery/machined-castings/endshield_5.jpg',
-  ],
-};
 
 function Lightbox({ images, index, onClose, onPrev, onNext }: {
   images: string[]; index: number; onClose: () => void; onPrev: () => void; onNext: () => void;
@@ -111,8 +74,15 @@ function Lightbox({ images, index, onClose, onPrev, onNext }: {
   );
 }
 
+function parseGallery(raw: string[] | string | undefined | null): string[] {
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw;
+  try { const parsed = JSON.parse(raw); return Array.isArray(parsed) ? parsed : []; } catch { return []; }
+}
+
 function ProductSection({ product, i, dark }: { product: Product; i: number; dark: boolean }) {
-  const gallery = GALLERIES[product.category] ?? (product.image_url ? [product.image_url] : []);
+  const dbGallery = parseGallery(product.gallery_images as unknown as string[] | string);
+  const gallery = dbGallery.length > 0 ? dbGallery : (product.image_url ? [product.image_url] : []);
   const [mainImg, setMainImg] = useState(0);
   const [lightbox, setLightbox] = useState<number | null>(null);
   const isOdd = i % 2 !== 0;
@@ -181,7 +151,7 @@ function ProductSection({ product, i, dark }: { product: Product; i: number; dar
 
             {/* Thumbnails */}
             <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
-              {gallery.map((img, idx) => (
+              {gallery.map((img: string, idx: number) => (
                 <button
                   key={idx}
                   onClick={() => setMainImg(idx)}
@@ -273,12 +243,14 @@ export default function Products() {
   const { theme } = useTheme();
   const dark = theme === 'dark';
   const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch(`${API_BASE}/products`)
       .then(r => r.json() as Promise<Product[]>)
       .then(setProducts)
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
   return (
@@ -303,11 +275,19 @@ export default function Products() {
         </motion.div>
 
         {/* Product sections */}
-        <div className="space-y-4 sm:space-y-6 lg:space-y-8">
-          {products.map((product, i) => (
-            <ProductSection key={product.id} product={product} i={i} dark={dark} />
-          ))}
-        </div>
+        {loading ? (
+          <div className="space-y-4 sm:space-y-6 lg:space-y-8">
+            {[1, 2, 3].map(n => (
+              <div key={n} className={`rounded-2xl sm:rounded-3xl border h-64 animate-pulse ${dark ? 'bg-slate-900 border-slate-800' : 'bg-slate-200 border-slate-100'}`} />
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-4 sm:space-y-6 lg:space-y-8">
+            {products.map((product, i) => (
+              <ProductSection key={product.id} product={product} i={i} dark={dark} />
+            ))}
+          </div>
+        )}
 
         {/* Bottom CTA */}
         <motion.div

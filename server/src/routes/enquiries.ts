@@ -42,7 +42,7 @@ router.get('/', authMiddleware, async (req: Request, res: Response): Promise<voi
 
     res.json({
       data: dataResult.rows,
-      total: parseInt(countResult.rows[0].total),
+      total: parseInt(countResult.rows[0].total, 10),
       page: Number(page),
       limit: Number(limit),
     });

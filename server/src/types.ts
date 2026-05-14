@@ -27,6 +27,7 @@ export interface Product {
   active: number;
   sort_order: number;
   image_url: string;
+  gallery_images: string;
   created_at: string;
 }
 

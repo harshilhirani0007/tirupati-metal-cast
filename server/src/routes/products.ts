@@ -20,7 +20,9 @@ const upload = multer({
 type ProductWithApps = Omit<Product, 'applications'> & { applications: string[] };
 
 function parseProduct(p: Product): ProductWithApps {
-  return { ...p, applications: p.applications ? p.applications.split(',') : [] };
+  let gallery: string[] = [];
+  try { gallery = JSON.parse(p.gallery_images || '[]'); } catch { gallery = []; }
+  return { ...p, applications: p.applications ? p.applications.split(',') : [], gallery_images: gallery as unknown as string };
 }
 
 // POST /api/products/upload  (admin) — upload to Cloudinary, return secure url
@@ -66,15 +68,16 @@ router.get('/all', authMiddleware, async (_req: Request, res: Response): Promise
 // POST /api/products  (admin)
 router.post('/', authMiddleware, async (req: Request, res: Response): Promise<void> => {
   try {
-    const { category, description, grade, applications, color, active, sort_order, image_url } = req.body as Omit<Product, 'id' | 'created_at'> & { applications: string | string[] };
+    const { category, description, grade, applications, color, active, sort_order, image_url, gallery_images } = req.body as Omit<Product, 'id' | 'created_at'> & { applications: string | string[] };
     if (!category || !description || !grade || !applications) {
       res.status(400).json({ error: 'Missing required fields' });
       return;
     }
     const appsStr = Array.isArray(applications) ? applications.join(',') : applications;
+    const galleryStr = Array.isArray(gallery_images) ? JSON.stringify(gallery_images) : (gallery_images ?? '[]');
     const result = await query<{ id: number }>(
-      'INSERT INTO products (category, description, grade, applications, color, active, sort_order, image_url) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id',
-      [category, description, grade, appsStr, color ?? 'from-slate-700 to-slate-800', active ?? 1, sort_order ?? 0, image_url ?? '']
+      'INSERT INTO products (category, description, grade, applications, color, active, sort_order, image_url, gallery_images) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id',
+      [category, description, grade, appsStr, color ?? 'from-slate-700 to-slate-800', active ?? 1, sort_order ?? 0, image_url ?? '', galleryStr]
     );
     res.status(201).json({ id: result.rows[0].id });
   } catch (err) {
@@ -85,11 +88,12 @@ router.post('/', authMiddleware, async (req: Request, res: Response): Promise<vo
 // PUT /api/products/:id  (admin)
 router.put('/:id', authMiddleware, async (req: Request, res: Response): Promise<void> => {
   try {
-    const { category, description, grade, applications, color, active, sort_order, image_url } = req.body as Omit<Product, 'id' | 'created_at'> & { applications: string | string[] };
+    const { category, description, grade, applications, color, active, sort_order, image_url, gallery_images } = req.body as Omit<Product, 'id' | 'created_at'> & { applications: string | string[] };
     const appsStr = Array.isArray(applications) ? applications.join(',') : applications;
+    const galleryStr = Array.isArray(gallery_images) ? JSON.stringify(gallery_images) : (gallery_images ?? '[]');
     await query(
-      'UPDATE products SET category=$1, description=$2, grade=$3, applications=$4, color=$5, active=$6, sort_order=$7, image_url=$8 WHERE id=$9',
-      [category, description, grade, appsStr, color, active ?? 1, sort_order ?? 0, image_url ?? '', String(req.params.id)]
+      'UPDATE products SET category=$1, description=$2, grade=$3, applications=$4, color=$5, active=$6, sort_order=$7, image_url=$8, gallery_images=$9 WHERE id=$10',
+      [category, description, grade, appsStr, color, active ?? 1, sort_order ?? 0, image_url ?? '', galleryStr, String(req.params.id)]
     );
     res.json({ message: 'Updated' });
   } catch (err) {
