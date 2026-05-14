@@ -66,7 +66,7 @@ export default function App() {
           <ScrollToTop />
           <Routes>
             {/* Public website — multi-page SPA */}
-            <Route element={<PublicLayout fullPage><Hero /><Stats /><About /><Products /><Services /><Quality /><Process /><WhyUs /><Testimonials /><Contact /></PublicLayout>} path="/" />
+            <Route element={<PublicLayout fullPage><Hero /><Stats /><About /><Products /><Services /><Process /><Quality /><WhyUs /><Testimonials /><Contact /></PublicLayout>} path="/" />
             <Route element={<PublicLayout><About /></PublicLayout>} path="/about" />
             <Route element={<PublicLayout><Products /></PublicLayout>} path="/products" />
             <Route element={<PublicLayout><Services /></PublicLayout>} path="/services" />
