@@ -28,7 +28,7 @@ const steps = [
     step: '04',
     title: 'Hand Moulding',
     desc: 'Single-piece castings from 30 kg to 3000 kg for electric motors, end shields, valve components, gearboxes, foundation plates, and machine tool castings.',
-    image: 'https://res.cloudinary.com/dogc5wiy4/image/upload/v1778778955/tirupati/process/foundry-img5.jpg',
+    image: 'https://res.cloudinary.com/dogc5wiy4/image/upload/v1778780279/tirupati/process/foundry-img1.jpg',
     tag: 'Precision',
   },
   {
