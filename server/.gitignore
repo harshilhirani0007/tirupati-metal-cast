@@ -32,3 +32,6 @@ Thumbs.db
 
 # Cache
 .eslintcache
+
+# Local image uploads (uploaded to Cloudinary, not needed in repo)
+src/product-images/
